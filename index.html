@@ -322,6 +322,10 @@
                 <input type="radio" name="bracketMode" id="bracket-mode-auto" value="auto" checked />
                 <label class="opt-label" for="bracket-mode-auto">Find a and b automatically</label>
                 <span class="field-hint" style="margin:0;">scans f(x) for a sign change near the curve</span>
+                <label for="bracket-fine-toggle" style="display:flex; align-items:center; gap:8px; width:100%; margin:6px 0 0 26px; font-size:.82rem; font-weight:500; color:var(--ink-dim); cursor:pointer;">
+                  <input type="checkbox" id="bracket-fine-toggle" style="width:15px; height:15px; flex:none; accent-color:var(--copper);" />
+                  Prefer a tighter decimal bracket over whole numbers
+                </label>
               </div>
               <div class="stop-option" data-mode="bracket-manual">
                 <input type="radio" name="bracketMode" id="bracket-mode-manual" value="manual" />
@@ -503,6 +507,7 @@
     trueIn:   $('true-root-input'),
     precisionIn: $('precision-input'),
     bracketHint: $('bracket-found-hint'),
+    fineToggle: $('bracket-fine-toggle'),
     fxDot:    $('fx-validity'),
     statusMsg:$('status-msg'),
     heroGr:   $('hero-graph'),
@@ -575,11 +580,27 @@
   }
 
   /* ================================================================
-     AUTO BRACKET FINDER
-     Scans progressively wider windows around the origin for a sign
-     change in f(x), so the user doesn't have to supply a and b.
+     AUTO BRACKET FINDERS
+     Two strategies:
+     - Whole-number (default): scans consecutive integers for a sign
+       change, so a/b come out as clean numbers like 1, 2 — the way
+       textbook brackets usually look.
+     - Fine: scans progressively wider windows with finer steps,
+       landing on a tighter (decimal) bracket close to the root.
      ================================================================ */
-  function findBracketAuto(fn) {
+  function findBracketAutoWhole(fn) {
+    const N = 1000;
+    let prevX = -N, prevY = fn(-N);
+    for (let x = -N + 1; x <= N; x++) {
+      const y = fn(x);
+      if (isFinite(prevY) && prevY === 0) return [prevX, prevX + 1];
+      if (isFinite(prevY) && isFinite(y) && prevY * y < 0) return [prevX, x];
+      prevX = x; prevY = y;
+    }
+    return null;
+  }
+
+  function findBracketAutoFine(fn) {
     const windows = [
       { lo: -10,   hi: 10,   n: 400 },
       { lo: -100,  hi: 100,  n: 500 },
@@ -1030,13 +1051,21 @@
       if (a >= b)   return showStatus('Bound a must be strictly less than b.');
       D.bracketHint.hidden = true;
     } else {
-      const found = findBracketAuto(fn);
+      const wantFine = D.fineToggle.checked;
+      let found = wantFine ? findBracketAutoFine(fn) : findBracketAutoWhole(fn);
+      let usedFine = wantFine;
+      if (!found && !wantFine) {              /* fall back automatically */
+        found = findBracketAutoFine(fn);
+        usedFine = true;
+      }
       if (!found) return showStatus('Could not automatically find a sign change for this function within ±1000. Switch to "I\'ll set a and b myself" and enter a bracket directly.');
       [a, b] = found;
       D.aInput.value = fmt(a);
       D.bInput.value = fmt(b);
       D.bracketHint.hidden = false;
-      D.bracketHint.textContent = `Auto-detected bracket: a = ${fmt(a)}, b = ${fmt(b)}`;
+      D.bracketHint.textContent = usedFine
+        ? `Auto-detected a tighter decimal bracket: a = ${fmt(a)}, b = ${fmt(b)}`
+        : `Auto-detected whole-number bracket: a = ${fmt(a)}, b = ${fmt(b)}`;
     }
 
     /* --- sign check --- */
@@ -1129,6 +1158,7 @@
     D.bInput.disabled = true;
     document.querySelectorAll('#bracket-mode-options .stop-option').forEach(opt => opt.classList.remove('active-mode'));
     $('bracket-mode-auto').closest('.stop-option').classList.add('active-mode');
+    D.fineToggle.checked = false;
     D.bracketHint.hidden = true;
     clearStatus();
     D.solSec.hidden = true;
