@@ -11,34 +11,27 @@
 <style>
   /* ============================================================
      DESIGN TOKENS — "Drafting Table / Blueprint" system
-     A numerical method is a precision instrument: this system
-     borrows from technical drafting — blueprint paper, ruled
-     grids, compass arcs, and pencil/ink correction marks — to
-     give the math a tactile, instrument-panel feel.
      ============================================================ */
   :root{
-    --bg:        #0F2240;   /* blueprint field */
-    --bg-deep:   #081729;   /* recessed / nav / footer */
-    --panel:     #173A60;   /* card surface */
-    --panel-2:   #1C4470;   /* raised surface / hover */
-    --line:      #3D6694;   /* cyanotype rule lines, borders */
+    --bg:        #0F2240;
+    --bg-deep:   #081729;
+    --panel:     #173A60;
+    --panel-2:   #1C4470;
+    --line:      #3D6694;
     --line-soft: rgba(61,102,148,0.32);
-    --ink:       #EDEAE0;   /* linen — primary text */
-    --ink-dim:   #AEC0D6;   /* secondary text */
-    --ink-faint: #7B93B0;   /* tertiary / placeholder */
-    --copper:    #C9784B;   /* active accent — ink correction mark */
+    --ink:       #EDEAE0;
+    --ink-dim:   #AEC0D6;
+    --ink-faint: #7B93B0;
+    --copper:    #C9784B;
     --copper-hi: #E2945F;
-    --verdigris: #7FA68C;   /* converged / success */
-    --danger:    #D9776B;   /* sign-error / invalid */
-
+    --verdigris: #7FA68C;
+    --danger:    #D9776B;
     --font-display: 'IBM Plex Sans Condensed', sans-serif;
     --font-body:    'IBM Plex Sans', sans-serif;
     --font-mono:    'IBM Plex Mono', monospace;
-
     --radius: 3px;
     --ease: cubic-bezier(.22,.68,0,1);
   }
-
   *{ box-sizing: border-box; }
   html{ color-scheme: dark; }
   body{
@@ -59,108 +52,48 @@
   a{ color: var(--copper-hi); text-decoration: underline; text-decoration-color: rgba(226,148,95,.4); text-underline-offset: .15em; }
   a:hover{ text-decoration-color: var(--copper-hi); }
   button, input, select{ font-family: inherit; }
-
   :focus-visible{ outline: 2px solid var(--copper-hi); outline-offset: 2px; border-radius: 2px; }
-
-  .skip-link{
-    position:absolute; left:-999px; top:0; background:var(--copper); color:var(--bg-deep);
-    padding:.5em 1em; z-index:200; font-weight:600;
-  }
+  .skip-link{ position:absolute; left:-999px; top:0; background:var(--copper); color:var(--bg-deep); padding:.5em 1em; z-index:200; font-weight:600; }
   .skip-link:focus{ left:8px; top:8px; }
 
   /* ---------- Shell layout ---------- */
-  .shell{
-    display:flex;
-    min-height:100vh;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
+  .shell{ display:flex; min-height:100vh; max-width: 1400px; margin: 0 auto; }
   .sheet-index{
-    flex: 0 0 248px;
-    background: var(--bg-deep);
-    border-right: 1px solid var(--line-soft);
-    padding: 22px 16px;
-    position: sticky;
-    top:0;
-    align-self: flex-start;
-    height: 100vh;
-    overflow-y:auto;
+    flex: 0 0 248px; background: var(--bg-deep);
+    border-right: 1px solid var(--line-soft); padding: 22px 16px;
+    position: sticky; top:0; align-self: flex-start; height: 100vh; overflow-y:auto;
   }
-  .brand{
-    display:flex; align-items:center; gap:10px;
-    margin-bottom: 26px;
-    padding-bottom:16px;
-    border-bottom: 1px solid var(--line-soft);
-  }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom: 26px; padding-bottom:16px; border-bottom: 1px solid var(--line-soft); }
   .brand-mark{ width:30px; height:30px; flex:none; }
-  .brand-text{
-    font-family: var(--font-display); font-weight:700; font-size: 1rem;
-    letter-spacing:.02em; line-height:1.15;
-  }
+  .brand-text{ font-family: var(--font-display); font-weight:700; font-size: 1rem; letter-spacing:.02em; line-height:1.15; }
   .brand-text small{ display:block; font-family: var(--font-mono); font-weight:400; font-size:.68rem; color: var(--ink-faint); letter-spacing:.08em; text-transform:uppercase; margin-top:2px; }
-
-  .index-label{
-    font-family: var(--font-mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase;
-    color: var(--ink-faint); margin: 0 0 10px 6px;
-  }
+  .index-label{ font-family: var(--font-mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color: var(--ink-faint); margin: 0 0 10px 6px; }
   .sheet-list{ list-style:none; margin:0 0 24px; padding:0; display:flex; flex-direction:column; gap:4px; }
-  .sheet-item{
-    display:flex; align-items:baseline; gap:10px;
-    padding:9px 10px; border-radius: var(--radius);
-    font-size:.92rem; color: var(--ink-dim);
-    border-left: 2px solid transparent;
-  }
+  .sheet-item{ display:flex; align-items:baseline; gap:10px; padding:9px 10px; border-radius: var(--radius); font-size:.92rem; color: var(--ink-dim); border-left: 2px solid transparent; }
   .sheet-item .num{ font-family: var(--font-mono); font-size:.78rem; color: var(--ink-faint); }
-  .sheet-item.active{
-    background: var(--panel); color: var(--ink); border-left-color: var(--copper);
-  }
+  .sheet-item.active{ background: var(--panel); color: var(--ink); border-left-color: var(--copper); }
   .sheet-item.active .num{ color: var(--copper-hi); }
   .sheet-item.disabled{ opacity:.45; cursor: default; }
   .sheet-item .soon{ font-family: var(--font-mono); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase; margin-left:auto; color: var(--ink-faint); border:1px solid var(--line-soft); padding:1px 5px; border-radius:2px; }
-
   .sidebar-foot{ font-size:.78rem; color: var(--ink-faint); border-top:1px solid var(--line-soft); padding-top:14px; }
   .sidebar-foot a{ color: var(--ink-dim); }
-
-  /* mobile top nav */
   .mobile-nav{ display:none; }
-
   main.workbench{ flex:1; min-width:0; padding: 36px 40px 60px; }
 
   /* ---------- Hero ---------- */
-  .hero{
-    display:grid; grid-template-columns: 1.1fr .9fr; gap:36px;
-    align-items:center;
-    padding-bottom: 30px; margin-bottom: 30px;
-    border-bottom: 1px solid var(--line-soft);
-  }
+  .hero{ display:grid; grid-template-columns: 1.1fr .9fr; gap:36px; align-items:center; padding-bottom: 30px; margin-bottom: 30px; border-bottom: 1px solid var(--line-soft); }
   .hero h1{ font-size: clamp(1.7rem, 2.6vw, 2.35rem); font-weight:700; line-height:1.12; }
   .hero h1 .accent{ color: var(--copper-hi); }
   .hero-sub{ margin-top:12px; max-width: 46ch; }
   .hero-meta{ display:flex; gap:18px; margin-top:18px; font-family: var(--font-mono); font-size:.78rem; color: var(--ink-faint); flex-wrap:wrap; }
   .hero-meta span b{ color: var(--ink-dim); font-weight:600; }
-
-  .hero-plate{
-    background: var(--panel);
-    border:1px solid var(--line-soft);
-    border-radius: var(--radius);
-    padding: 14px;
-  }
+  .hero-plate{ background: var(--panel); border:1px solid var(--line-soft); border-radius: var(--radius); padding: 14px; }
   .hero-plate-label{ font-family: var(--font-mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color: var(--ink-faint); margin-bottom:6px; display:flex; justify-content:space-between; }
   .hero-plate svg{ display:block; width:100%; height:auto; }
 
   /* ---------- Panels ---------- */
-  .panel{
-    background: var(--panel);
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius);
-    margin-bottom: 26px;
-    overflow:hidden;
-  }
-  .panel-head{
-    display:flex; align-items:baseline; justify-content:space-between; gap:12px;
-    padding: 16px 22px; border-bottom: 1px solid var(--line-soft);
-  }
+  .panel{ background: var(--panel); border: 1px solid var(--line-soft); border-radius: var(--radius); margin-bottom: 26px; overflow:hidden; }
+  .panel-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding: 16px 22px; border-bottom: 1px solid var(--line-soft); }
   .panel-head h2{ font-size:1.05rem; font-weight:600; }
   .panel-head .plate-tag{ font-family: var(--font-mono); font-size:.68rem; color: var(--ink-faint); letter-spacing:.08em; text-transform:uppercase; }
   .panel-body{ padding: 22px; }
@@ -171,24 +104,15 @@
   .field-hint{ font-size:.78rem; color: var(--ink-faint); margin-top:6px; }
   .field-row{ display:flex; gap:16px; flex-wrap:wrap; }
   .field-row > .field{ flex:1; min-width:140px; }
-
-  input[type=text], input[type=number]{
-    width:100%; background: var(--bg-deep); border:1px solid var(--line);
-    color: var(--ink); padding: 10px 12px; border-radius: var(--radius);
-    font-family: var(--font-mono); font-size:.95rem;
-  }
+  input[type=text], input[type=number]{ width:100%; background: var(--bg-deep); border:1px solid var(--line); color: var(--ink); padding: 10px 12px; border-radius: var(--radius); font-family: var(--font-mono); font-size:.95rem; }
   input::placeholder{ color: var(--ink-faint); }
   input[type=text]:focus, input[type=number]:focus{ border-color: var(--copper-hi); }
   input.invalid{ border-color: var(--danger); }
-
   .fx-row{ display:flex; align-items:center; gap:10px; }
-  .fx-row .fx-prefix{ font-family: var(--font-mono); font-size:1.05rem; color: var(--ink-dim); white-space:nowrap; }
   .validity-dot{ width:9px; height:9px; border-radius:50%; background: var(--ink-faint); flex:none; transition: background .2s var(--ease); }
   .validity-dot.ok{ background: var(--verdigris); }
   .validity-dot.bad{ background: var(--danger); }
-
   .example-link{ background:none; border:none; color: var(--copper-hi); font-size:.8rem; padding:0; cursor:pointer; text-decoration: underline; text-decoration-color: rgba(226,148,95,.4); }
-
   details.tutorial{ margin-top: 10px; border:1px dashed var(--line-soft); border-radius: var(--radius); padding: 4px 14px; }
   details.tutorial summary{ cursor:pointer; padding:10px 0; font-size:.85rem; font-weight:600; color: var(--ink-dim); list-style:none; display:flex; align-items:center; gap:8px;}
   details.tutorial summary::before{ content:"+"; color: var(--copper-hi); font-family: var(--font-mono); width:14px; }
@@ -200,26 +124,17 @@
   .syntax-table td code{ font-family: var(--font-mono); color: var(--copper-hi); }
   .note-box{ background: rgba(217,119,107,.12); border-left:3px solid var(--danger); padding:10px 12px; font-size:.82rem; border-radius:2px; margin-top:10px; }
   .note-box.info{ background: rgba(127,166,140,.12); border-left-color: var(--verdigris); }
-
   fieldset{ border:none; padding:0; margin:0 0 18px; }
   fieldset > legend{ font-size:.84rem; font-weight:600; color: var(--ink-dim); margin-bottom:8px; padding:0; }
   .stop-options{ display:flex; flex-direction:column; gap:10px; }
-  .stop-option{
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    padding:10px 12px; border:1px solid var(--line-soft); border-radius: var(--radius);
-  }
+  .stop-option{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 12px; border:1px solid var(--line-soft); border-radius: var(--radius); }
   .stop-option.active-mode{ border-color: var(--copper); background: rgba(201,120,75,.08); }
   .stop-option input[type=radio]{ accent-color: var(--copper); width:16px; height:16px; flex:none; }
   .stop-option label.opt-label{ font-weight:600; font-size:.88rem; margin:0; flex:none; }
   .stop-option .sub-input{ width:110px; margin-left:auto; }
   .stop-option .sub-input:disabled{ opacity:.4; }
-
   .btn-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top: 6px; }
-  .btn{
-    font-family: var(--font-display); font-weight:600; font-size:.92rem; letter-spacing:.02em;
-    padding: 11px 22px; border-radius: var(--radius); border:1px solid var(--line);
-    background: var(--panel-2); color: var(--ink); cursor:pointer; transition: transform .12s var(--ease), background .15s;
-  }
+  .btn{ font-family: var(--font-display); font-weight:600; font-size:.92rem; letter-spacing:.02em; padding: 11px 22px; border-radius: var(--radius); border:1px solid var(--line); background: var(--panel-2); color: var(--ink); cursor:pointer; transition: transform .12s var(--ease), background .15s; }
   .btn:hover{ background: #234d7c; }
   .btn:active{ transform: translateY(1px); }
   .btn--primary{ background: var(--copper); border-color: var(--copper); color: var(--bg-deep); }
@@ -227,11 +142,28 @@
   .btn--ghost{ background: transparent; }
   .btn:disabled{ opacity:.4; cursor:not-allowed; }
   .btn-icon{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; padding:0; border-radius: var(--radius); }
-
   .status-msg{ margin-top:16px; padding:12px 14px; border-radius: var(--radius); font-size:.88rem; display:flex; gap:10px; align-items:flex-start; }
   .status-msg.error{ background: rgba(217,119,107,.14); border:1px solid rgba(217,119,107,.4); color:#F4D9D5; }
   .status-msg.success{ background: rgba(127,166,140,.14); border:1px solid rgba(127,166,140,.4); color:#DCEAE1; }
   .status-msg[hidden]{ display:none; }
+
+  /* ---------- Solution box ---------- */
+  .sol-inner{ display:flex; flex-direction:column; gap:22px; }
+  .sol-group{ display:flex; flex-direction:column; gap:9px; }
+  .sol-lbl{ font-family: var(--font-mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color: var(--ink-faint); }
+  .sol-eq{ font-family: var(--font-mono); font-size:1.05rem; background: var(--bg-deep); border:1px solid var(--line-soft); border-radius:var(--radius); padding:10px 16px; display:inline-block; color: var(--ink); }
+  .bracket-box{ background: var(--bg-deep); border:1px solid var(--line-soft); border-radius:var(--radius); padding:14px 18px; display:flex; flex-direction:column; gap:8px; }
+  .bc-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; font-family:var(--font-mono); font-size:.86rem; }
+  .bc-row + .bc-row.ivt-row{ margin-top:4px; padding-top:10px; border-top:1px solid var(--line-soft); }
+  .sign-pill{ font-size:.69rem; font-weight:700; padding:2px 8px; border-radius:10px; letter-spacing:.03em; white-space:nowrap; }
+  .sign-pill.neg{ background:rgba(217,119,107,.18); color:#F4D9D5; border:1px solid rgba(217,119,107,.35); }
+  .sign-pill.pos{ background:rgba(127,166,140,.18); color:#DCEAE1; border:1px solid rgba(127,166,140,.35); }
+  .sign-pill.ok { background:rgba(127,166,140,.18); color:var(--verdigris); border:1px solid rgba(127,166,140,.35); }
+  .ivt-note{ font-size:.78rem; color:var(--ink-faint); }
+  .result-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .root-chip{ font-family:var(--font-mono); font-size:1.25rem; color:var(--copper-hi); background:var(--bg-deep); border:1px solid rgba(201,120,75,.3); border-radius:var(--radius); padding:10px 18px; }
+  .conv-chip{ font-family:var(--font-mono); font-size:.7rem; color:var(--verdigris); background:rgba(127,166,140,.1); border:1px solid rgba(127,166,140,.3); padding:4px 10px; border-radius:10px; }
+  .ae-note{ font-family:var(--font-mono); font-size:.78rem; color:var(--ink-faint); }
 
   /* ---------- Visualization ---------- */
   .viz-wrap{ background: var(--bg-deep); border-radius: var(--radius); padding: 10px; }
@@ -239,7 +171,6 @@
   .viz-controls{ display:flex; align-items:center; gap:14px; margin-top:16px; flex-wrap:wrap; }
   .step-indicator{ font-family: var(--font-mono); font-size:.82rem; color: var(--ink-dim); margin-left:auto; }
   .speed-select{ background: var(--bg-deep); border:1px solid var(--line); color: var(--ink); border-radius: var(--radius); padding:8px 10px; font-size:.84rem; }
-
   .reading-row{ display:flex; gap: 22px; margin-top:14px; flex-wrap:wrap; font-family: var(--font-mono); font-size:.84rem; }
   .reading-row .reading b{ display:block; color: var(--ink-faint); font-size:.66rem; text-transform:uppercase; letter-spacing:.08em; font-weight:400; margin-bottom:3px; }
   .reading-row .reading span{ color: var(--ink); font-size:.98rem; }
@@ -248,51 +179,37 @@
 
   /* ---------- Table ---------- */
   .table-scroll{ overflow-x:auto; }
-  table.iter-table{ width:100%; border-collapse: collapse; font-family: var(--font-mono); font-size:.84rem; min-width: 640px; }
-  table.iter-table th, table.iter-table td{ padding:9px 12px; text-align:right; border-bottom:1px solid var(--line-soft); white-space:nowrap; }
+  table.iter-table{ width:100%; border-collapse: collapse; font-family: var(--font-mono); font-size:.84rem; min-width: 880px; }
+  table.iter-table th, table.iter-table td{ padding:8px 10px; text-align:right; border-bottom:1px solid var(--line-soft); white-space:nowrap; }
   table.iter-table th:first-child, table.iter-table td:first-child{ text-align:left; }
-  table.iter-table thead th{ color: var(--ink-faint); font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; font-family: var(--font-body); font-weight:600; position:sticky; top:0; background: var(--panel); }
-  table.iter-table tbody tr{ transition: background .25s var(--ease); }
+  table.iter-table thead th{ color: var(--ink-faint); font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; font-family: var(--font-body); font-weight:600; position:sticky; top:0; background: var(--panel); }
+  table.iter-table tbody tr{ transition: background .2s var(--ease); }
   table.iter-table tbody tr.active-row{ background: rgba(201,120,75,.16); }
   table.iter-table tbody tr.converged-row td{ color: var(--verdigris); }
+  /* value colors */
+  table.iter-table td.neg-val{ color: var(--danger); }
+  table.iter-table td.pos-val{ color: var(--verdigris); }
+  table.iter-table td.c-val{ color: var(--copper-hi); font-weight:600; }
+  table.iter-table td.mini-cell{ padding:3px 8px; vertical-align:middle; }
+  .table-note{ font-family:var(--font-mono); font-size:.72rem; color:var(--ink-faint); margin-top:10px; }
   .export-row{ display:flex; gap:12px; margin-top:18px; flex-wrap:wrap; align-items:center; }
   .export-note{ font-size:.78rem; color: var(--ink-faint); }
 
-  /* ---------- Export capture credit (injected only during capture) ---------- */
-  .capture-credit{
-    font-family: var(--font-mono); font-size:.72rem; color: var(--ink-faint);
-    padding-top:12px; margin-top:12px; border-top:1px dashed var(--line-soft); text-align:right;
-  }
-  .capture-credit a{ color: var(--copper-hi); }
+  /* ---------- Capture credit ---------- */
+  .capture-credit{ font-family: var(--font-mono); font-size:.72rem; color: var(--ink-faint); padding-top:12px; margin-top:12px; border-top:1px dashed var(--line-soft); text-align:right; }
 
-  footer.site-foot{
-    margin-top: 40px; padding-top: 22px; border-top:1px solid var(--line-soft);
-    display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
-    font-size:.82rem; color: var(--ink-faint);
-  }
+  /* ---------- Footer ---------- */
+  footer.site-foot{ margin-top: 40px; padding-top: 22px; border-top:1px solid var(--line-soft); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; font-size:.82rem; color: var(--ink-faint); }
   footer.site-foot a{ color: var(--ink-dim); font-weight:600; }
-
   .visually-hidden{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
 
-  @media (prefers-reduced-motion: reduce){
-    *{ animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
-  }
-
-  @media (max-width: 900px){
-    .hero{ grid-template-columns: 1fr; }
-  }
-
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; } }
+  @media (max-width: 900px){ .hero{ grid-template-columns:1fr; } }
   @media (max-width: 760px){
     .shell{ flex-direction:column; }
     .sheet-index{ display:none; }
-    .mobile-nav{
-      display:flex; gap:8px; overflow-x:auto; position:sticky; top:0; z-index:20;
-      background: var(--bg-deep); padding:12px 16px; border-bottom:1px solid var(--line-soft);
-    }
-    .mobile-nav button{
-      flex:none; font-family: var(--font-mono); font-size:.76rem; padding:7px 12px;
-      border-radius: 20px; border:1px solid var(--line); background: var(--panel); color: var(--ink-dim);
-    }
+    .mobile-nav{ display:flex; gap:8px; overflow-x:auto; position:sticky; top:0; z-index:20; background: var(--bg-deep); padding:12px 16px; border-bottom:1px solid var(--line-soft); }
+    .mobile-nav button{ flex:none; font-family: var(--font-mono); font-size:.76rem; padding:7px 12px; border-radius: 20px; border:1px solid var(--line); background: var(--panel); color: var(--ink-dim); }
     .mobile-nav button.active{ background: var(--copper); color: var(--bg-deep); border-color: var(--copper); font-weight:600; }
     main.workbench{ padding: 24px 16px 50px; }
     .field-row{ flex-direction:column; }
@@ -317,7 +234,6 @@
       </svg>
       <div class="brand-text">Numerical Analysis<small>Workbench</small></div>
     </div>
-
     <p class="index-label">Sheet index</p>
     <ul class="sheet-list">
       <li class="sheet-item active"><span class="num">01</span> Bisection method</li>
@@ -326,10 +242,9 @@
       <li class="sheet-item disabled"><span class="num">04</span> Fixed-point iteration <span class="soon">soon</span></li>
       <li class="sheet-item disabled"><span class="num">05</span> Lagrange interpolation <span class="soon">soon</span></li>
     </ul>
-
     <div class="sidebar-foot">
       Built by <a href="https://mehedy.netlify.app/" target="_blank" rel="noopener">Mehedy</a><br>
-      Sheet rev. 2026.1
+      Sheet rev. 2026.2
     </div>
   </nav>
 
@@ -341,6 +256,7 @@
 
   <main class="workbench" id="main-content">
 
+    <!-- ── HERO ──────────────────────────────────────────────────── -->
     <section class="hero">
       <div>
         <h1>Bisection method,<br>drawn out <span class="accent">step by step</span>.</h1>
@@ -357,6 +273,7 @@
       </div>
     </section>
 
+    <!-- ── INPUT PANEL ───────────────────────────────────────────── -->
     <section class="panel" aria-labelledby="input-heading">
       <div class="panel-head">
         <h2 id="input-heading">Set up the problem</h2>
@@ -371,12 +288,12 @@
               <input type="text" id="fx-input" name="fx" placeholder="x^3 - 4*x - 9" autocomplete="off" inputmode="text" aria-describedby="fx-hint" />
               <span class="validity-dot" id="fx-validity" aria-hidden="true"></span>
             </div>
-            <p class="field-hint" id="fx-hint">Use <code>x</code> as the variable — powers, trig, logs and roots are all supported. <button type="button" class="example-link" id="load-example">Load an example</button></p>
+            <p class="field-hint" id="fx-hint">Use <code>x</code> as the variable — powers, trig, logs, roots, and the constants <code>e</code> and <code>pi</code> are all supported. <button type="button" class="example-link" id="load-example">Load an example</button></p>
 
             <details class="tutorial">
               <summary>How do I type my equation?</summary>
               <div class="tutorial-body">
-                <p>The parser reads standard math notation. A few examples to get you oriented:</p>
+                <p>The parser reads standard math notation. A few examples:</p>
                 <table class="syntax-table">
                   <thead><tr><th>You want</th><th>Type this</th></tr></thead>
                   <tbody>
@@ -384,31 +301,32 @@
                     <tr><td>Multiplication</td><td><code>4*x</code> (or just <code>4x</code>)</td></tr>
                     <tr><td>Square root</td><td><code>sqrt(x)</code></td></tr>
                     <tr><td>Trig functions</td><td><code>sin(x)</code>, <code>cos(x)</code>, <code>tan(x)</code></td></tr>
-                    <tr><td>Exponential, eˣ</td><td><code>exp(x)</code></td></tr>
+                    <tr><td>Exponential eˣ</td><td><code>exp(x)</code> or <code>e^x</code></td></tr>
                     <tr><td>Natural log</td><td><code>log(x)</code> or <code>ln(x)</code></td></tr>
                     <tr><td>Base-10 log</td><td><code>log10(x)</code></td></tr>
-                    <tr><td>Constants</td><td><code>pi</code>, <code>e</code></td></tr>
+                    <tr><td>Constants</td><td><code>pi</code>, <code>e</code> (Euler's number ≈ 2.71828)</td></tr>
                     <tr><td>Absolute value</td><td><code>abs(x)</code></td></tr>
                   </tbody>
                 </table>
-                <div class="note-box">Heads up: in this parser, <code>log(x)</code> means the <em>natural</em> log, same as <code>ln(x)</code> — not base-10. Use <code>log10(x)</code> if that's what you mean.</div>
-                <p style="margin-top:12px;">Full example: <code>sin(x) - x/2</code> or <code>exp(-x) - x</code> work exactly as written.</p>
+                <div class="note-box info">The bounds a and b also accept expressions: type <code>e</code>, <code>pi</code>, <code>2*pi</code>, <code>sqrt(2)</code>, etc.</div>
+                <div class="note-box" style="margin-top:8px;">In this parser, <code>log(x)</code> is the <em>natural</em> log (same as <code>ln(x)</code>). Use <code>log10(x)</code> for base-10.</div>
               </div>
             </details>
           </div>
 
+          <!-- bounds: type="text" so users can type 'e', 'pi', etc. -->
           <div class="field-row">
             <div class="field">
               <label for="a-input">a (lower bound)</label>
-              <input type="number" id="a-input" name="a" step="any" placeholder="2" />
+              <input type="text" id="a-input" name="a" placeholder="e.g. 1 or pi/2" autocomplete="off" />
             </div>
             <div class="field">
               <label for="b-input">b (upper bound)</label>
-              <input type="number" id="b-input" name="b" step="any" placeholder="3" />
+              <input type="text" id="b-input" name="b" placeholder="e.g. 2 or e" autocomplete="off" />
             </div>
             <div class="field">
               <label for="true-root-input">True root (optional)</label>
-              <input type="number" id="true-root-input" name="trueRoot" step="any" placeholder="if known" />
+              <input type="text" id="true-root-input" name="trueRoot" placeholder="if known, enables AE/RE" autocomplete="off" />
             </div>
           </div>
 
@@ -443,6 +361,18 @@
       </div>
     </section>
 
+    <!-- ── SOLUTION BOX ──────────────────────────────────────────── -->
+    <section class="panel" id="solution-section" hidden aria-labelledby="sol-heading" aria-live="polite">
+      <div class="panel-head">
+        <h2 id="sol-heading">Solution analysis</h2>
+        <span class="plate-tag">Sheet 01 / Solution</span>
+      </div>
+      <div class="panel-body">
+        <div id="sol-box" class="sol-inner"></div>
+      </div>
+    </section>
+
+    <!-- ── VISUALIZATION ─────────────────────────────────────────── -->
     <section class="panel" id="viz-section" hidden aria-labelledby="viz-heading">
       <div class="panel-head">
         <h2 id="viz-heading">Visualizing the bracket</h2>
@@ -473,6 +403,7 @@
       </div>
     </section>
 
+    <!-- ── ITERATION TABLE ───────────────────────────────────────── -->
     <section class="panel" id="table-section" hidden aria-labelledby="table-heading">
       <div class="panel-head">
         <h2 id="table-heading">Iteration log</h2>
@@ -480,16 +411,18 @@
       </div>
       <div class="panel-body">
         <div class="table-scroll" id="capture-target">
-          <p id="capture-summary" style="font-family: var(--font-mono); font-size:.86rem; color: var(--ink-dim); margin-bottom:14px;"></p>
+          <p id="capture-summary" style="font-family:var(--font-mono);font-size:.84rem;color:var(--ink-dim);margin-bottom:14px;"></p>
           <table class="iter-table" id="iter-table">
             <thead><tr id="iter-thead-row"></tr></thead>
             <tbody id="iter-tbody"></tbody>
           </table>
+          <p class="table-note" id="table-note"></p>
         </div>
         <div class="export-row">
           <button type="button" class="btn" id="export-image-btn">Download as image</button>
           <button type="button" class="btn" id="export-pdf-btn">Download as PDF</button>
-          <span class="export-note">Exports include the equation, bracket, and full iteration log.</span>
+          <button type="button" class="btn" id="export-html-btn">Download as HTML</button>
+          <span class="export-note">Exports include the equation, bracket check, and full iteration log.</span>
         </div>
       </div>
     </section>
@@ -500,11 +433,904 @@
     </footer>
 
   </main>
-</div>
+</div><!-- .shell -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/14.8.1/math.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.3/jspdf.umd.min.js"></script>
 
+<script>
+(function () {
+  'use strict';
+
+  /* ================================================================
+     STATE
+     ================================================================ */
+  let _steps   = [];
+  let _idx     = 0;
+  let _playTmr = null;
+  let _heroTmr = null;
+  let _fn      = null;   // compiled evaluator
+  let _initA, _initB, _trueRoot;
+  let _exIdx   = 0;
+
+  /* ================================================================
+     EXAMPLES
+     ================================================================ */
+  const EXAMPLES = [
+    { fx: 'x^3 - x - 2',      a: '1',     b: '2',   note: 'Classic cubic — root ≈ 1.5214' },
+    { fx: 'x^3 - 4*x - 9',    a: '2',     b: '3',   note: 'Cubic — root ≈ 2.7065' },
+    { fx: 'cos(x) - x',       a: '0',     b: '1',   note: 'Transcendental — root ≈ 0.7391' },
+    { fx: 'exp(x) - 3*x',     a: '0',     b: '1',   note: 'Exponential — root ≈ 0.6190' },
+    { fx: 'x^2 - 2',          a: '1',     b: '2',   note: '√2 — root ≈ 1.4142' },
+    { fx: 'sin(x) - x/2',     a: '1',     b: '2',   note: 'Trig — root ≈ 1.8955' },
+    { fx: 'log(x) - cos(x)',  a: '1',     b: '2',   note: 'Log vs cosine — root ≈ 1.3026' },
+    { fx: 'e^x - x^2 - 2',   a: '0',     b: '1',   note: 'Uses e constant — root ≈ 0.4428' },
+  ];
+
+  /* ================================================================
+     DOM REFERENCES
+     ================================================================ */
+  const $ = id => document.getElementById(id);
+  const D = {
+    fxInput:  $('fx-input'),
+    aInput:   $('a-input'),
+    bInput:   $('b-input'),
+    trueIn:   $('true-root-input'),
+    fxDot:    $('fx-validity'),
+    statusMsg:$('status-msg'),
+    heroGr:   $('hero-graph'),
+    heroLbl:  $('hero-step-label'),
+    bisGr:    $('bisection-graph'),
+    solSec:   $('solution-section'),
+    vizSec:   $('viz-section'),
+    tblSec:   $('table-section'),
+    solBox:   $('sol-box'),
+    readA:    $('read-a'),
+    readB:    $('read-b'),
+    readC:    $('read-c'),
+    readFc:   $('read-fc'),
+    readConv: $('read-converged'),
+    readConvW:$('read-converged-wrap'),
+    prevBtn:  $('step-prev'),
+    nextBtn:  $('step-next'),
+    playBtn:  $('play-pause'),
+    speedSel: $('speed-select'),
+    stepInd:  $('step-indicator'),
+    tHead:    $('iter-thead-row'),
+    tBody:    $('iter-tbody'),
+    capSum:   $('capture-summary'),
+    tblNote:  $('table-note'),
+    expImg:   $('export-image-btn'),
+    expPdf:   $('export-pdf-btn'),
+    expHtml:  $('export-html-btn'),
+  };
+
+  /* ================================================================
+     MATH UTILITIES
+     ================================================================ */
+  /* Parse a bound that may contain e, pi, sqrt(2), etc. */
+  function parseVal(s) {
+    if (!s || !s.trim()) return NaN;
+    try {
+      const v = math.evaluate(s.trim());
+      return (typeof v === 'number' && isFinite(v)) ? v : NaN;
+    } catch { return NaN; }
+  }
+
+  /* Compile f(x) expression into an evaluator */
+  function compileFn(expr) {
+    if (!expr || !expr.trim()) return null;
+    try {
+      const node  = math.parse(expr.trim());
+      const scope = {};
+      const fn = x => {
+        scope.x = x;
+        const r = node.evaluate(scope);
+        return typeof r === 'number' ? r : NaN;
+      };
+      fn.valid = true;
+      return fn;
+    } catch { return null; }
+  }
+
+  /* Format a number for table display */
+  function fmt(v, d = 6) {
+    if (v == null || isNaN(v) || !isFinite(v)) return '—';
+    const a = Math.abs(v);
+    if (a > 0 && (a >= 1e7 || a < 1e-3)) return v.toExponential(4);
+    return v.toFixed(d);
+  }
+
+  /* Scientific notation for error columns */
+  function fmtE(v) {
+    if (v == null || isNaN(v) || !isFinite(v)) return '—';
+    return v.toExponential(4);
+  }
+
+  /* ================================================================
+     BISECTION ALGORITHM
+     ================================================================ */
+  function bisect(fn, a, b, mode, param, trueRoot) {
+    const out  = [];
+    let cA = a, cB = b;
+    const maxN = (mode === 'iterations') ? Math.min(param, 200) : 200;
+    const tol  = (mode === 'tolerance')  ? param : 0;
+
+    for (let n = 1; n <= maxN; n++) {
+      const fa = fn(cA), fb = fn(cB);
+      const c  = (cA + cB) / 2;
+      const fc = fn(c);
+
+      /* AE / RE */
+      let ae, re;
+      if (trueRoot != null && isFinite(trueRoot)) {
+        ae = Math.abs(c - trueRoot);
+        re = Math.abs(trueRoot) > 1e-14 ? ae / Math.abs(trueRoot) : NaN;
+      } else {
+        ae = (cB - cA) / 2;                          /* max-error bound */
+        re = Math.abs(c) > 1e-14 ? ae / Math.abs(c) : NaN;
+      }
+
+      const step = { n, a: cA, b: cB, fa, fb, c, fc, ae, re,
+                     converged: false, reason: '' };
+      out.push(step);
+
+      /* Convergence checks */
+      if (Math.abs(fc) === 0) {
+        step.converged = true; step.reason = 'f(c) = 0 exactly'; break;
+      }
+      const eps = Number.EPSILON * Math.max(1, Math.abs(cA), Math.abs(cB));
+      if (cB - cA < 4 * eps) {
+        step.converged = true; step.reason = 'machine precision reached'; break;
+      }
+      if (mode === 'tolerance' && tol > 0 && ae <= tol) {
+        step.converged = true; step.reason = `AE ≤ ${tol}`; break;
+      }
+
+      /* Narrow the bracket */
+      if (fa * fc < 0) cB = c; else cA = c;
+    }
+
+    /* For "auto" mode mark the final step */
+    if (out.length && !out[out.length - 1].converged && mode === 'auto') {
+      out[out.length - 1].converged = true;
+      out[out.length - 1].reason    = 'max precision reached';
+    }
+    return out;
+  }
+
+  /* ================================================================
+     MINI NUMBER LINE SVG
+     Each table row shows the full initial range [_initA, _initB]
+     as a thin baseline, with the current bracket highlighted and
+     the midpoint c marked as a dot.
+     ================================================================ */
+  function miniLine(a, b, c) {
+    const W = 148, H = 26, pad = 11;
+    const rng = (_initB - _initA) || 1;
+    const tx  = v => pad + ((v - _initA) / rng) * (W - 2 * pad);
+    const ax = tx(a), bx = tx(b), cx = tx(c), mid = H / 2;
+
+    return [
+      `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`,
+      /* full range line */
+      `<line x1="${pad}" y1="${mid}" x2="${W - pad}" y2="${mid}" stroke="#253F5E" stroke-width="2"/>`,
+      /* end stops */
+      `<line x1="${pad}"     y1="${mid-4}" x2="${pad}"     y2="${mid+4}" stroke="#3D6694" stroke-width="1.5"/>`,
+      `<line x1="${W - pad}" y1="${mid-4}" x2="${W - pad}" y2="${mid+4}" stroke="#3D6694" stroke-width="1.5"/>`,
+      /* active bracket highlight */
+      `<line x1="${ax}" y1="${mid}" x2="${bx}" y2="${mid}" stroke="#C9784B" stroke-width="4" stroke-linecap="round" opacity="0.65"/>`,
+      /* a tick */
+      `<line x1="${ax}" y1="${mid-7}" x2="${ax}" y2="${mid+7}" stroke="#7FA68C" stroke-width="2" stroke-linecap="round"/>`,
+      /* b tick */
+      `<line x1="${bx}" y1="${mid-7}" x2="${bx}" y2="${mid+7}" stroke="#7FA68C" stroke-width="2" stroke-linecap="round"/>`,
+      /* c midpoint dot */
+      `<circle cx="${cx}" cy="${mid}" r="4" fill="#E2945F" stroke="#081729" stroke-width="1.2"/>`,
+      `</svg>`
+    ].join('');
+  }
+
+  /* ================================================================
+     RENDER: SOLUTION BOX
+     Shows: equation · sign check · result
+     ================================================================ */
+  function renderSolBox() {
+    const fa   = _fn(_initA), fb = _fn(_initB);
+    const last = _steps[_steps.length - 1];
+    const hasTrue = (_trueRoot != null && isFinite(_trueRoot));
+
+    D.solBox.innerHTML = `
+      <div class="sol-group">
+        <div class="sol-lbl">Equation</div>
+        <div class="sol-eq">f(x) = ${escHtml(D.fxInput.value.trim())}</div>
+      </div>
+
+      <div class="sol-group">
+        <div class="sol-lbl">Finding the bracket — IVT sign check on [a, b]</div>
+        <div class="bracket-box">
+          <div class="bc-row">
+            <code>f(a) = f(${fmt(_initA, 5)}) = ${fmt(fa, 8)}</code>
+            <span class="sign-pill ${fa < 0 ? 'neg' : 'pos'}">${fa < 0 ? '− negative' : '+ positive'}</span>
+          </div>
+          <div class="bc-row">
+            <code>f(b) = f(${fmt(_initB, 5)}) = ${fmt(fb, 8)}</code>
+            <span class="sign-pill ${fb < 0 ? 'neg' : 'pos'}">${fb < 0 ? '− negative' : '+ positive'}</span>
+          </div>
+          <div class="bc-row ivt-row">
+            <code>f(a) · f(b) = ${fmt(fa * fb, 5)} &lt; 0</code>
+            <span class="sign-pill ok">✓ IVT satisfied</span>
+            <span class="ivt-note">→ root exists in [${fmt(_initA, 5)}, ${fmt(_initB, 5)}] by Intermediate Value Theorem</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sol-group">
+        <div class="sol-lbl">Result — after ${_steps.length} iteration${_steps.length !== 1 ? 's' : ''}</div>
+        <div class="result-row">
+          <span class="root-chip">Root ≈ ${fmt(last.c, 10)}</span>
+          ${last.converged ? `<span class="conv-chip">✓ ${escHtml(last.reason)}</span>` : ''}
+          ${hasTrue ? `<span class="ae-note">true absolute error: ${fmtE(Math.abs(last.c - _trueRoot))}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  /* ================================================================
+     RENDER: ITERATION TABLE
+     ================================================================ */
+  function renderTable() {
+    const hasTrue = (_trueRoot != null && isFinite(_trueRoot));
+
+    D.tHead.innerHTML = [
+      'Step', 'a', 'b', 'f(a)', 'f(b)',
+      'c = (a+b)/2', 'f(c)', 'AE', 'RE', 'Bracket'
+    ].map(h => `<th>${h}</th>`).join('');
+
+    const last = _steps[_steps.length - 1];
+    D.capSum.textContent =
+      `f(x) = ${D.fxInput.value.trim()}  ·  [${fmt(_initA, 4)}, ${fmt(_initB, 4)}]` +
+      `  ·  ${_steps.length} iteration${_steps.length !== 1 ? 's' : ''}` +
+      `  ·  root ≈ ${fmt(last.c, 8)}${last.converged ? '  ✓' : ''}`;
+
+    D.tblNote.textContent = hasTrue
+      ? `AE = |c − ${fmt(_trueRoot, 6)}| (true root),  RE = AE / |true root|`
+      : `AE = (b − a) / 2  (guaranteed error bound),  RE = AE / |c|`;
+
+    D.tBody.innerHTML = '';
+    for (const s of _steps) {
+      const tr  = document.createElement('tr');
+      if (s.n === _idx + 1) tr.classList.add('active-row');
+      if (s.converged)      tr.classList.add('converged-row');
+
+      const sc = v => v < 0 ? 'neg-val' : (v > 0 ? 'pos-val' : '');
+
+      tr.innerHTML = [
+        `<td>${s.n}</td>`,
+        `<td>${fmt(s.a)}</td>`,
+        `<td>${fmt(s.b)}</td>`,
+        `<td class="${sc(s.fa)}">${fmt(s.fa)}</td>`,
+        `<td class="${sc(s.fb)}">${fmt(s.fb)}</td>`,
+        `<td class="c-val">${fmt(s.c)}</td>`,
+        `<td class="${sc(s.fc)}">${fmt(s.fc)}</td>`,
+        `<td>${fmtE(s.ae)}</td>`,
+        `<td>${(s.re != null && !isNaN(s.re)) ? fmtE(s.re) : '—'}</td>`,
+        `<td class="mini-cell">${miniLine(s.a, s.b, s.c)}</td>`,
+      ].join('');
+
+      D.tBody.appendChild(tr);
+    }
+  }
+
+  /* ================================================================
+     RENDER: MAIN GRAPH
+     ================================================================ */
+  function renderGraph(idx) {
+    if (!_steps.length || !_fn) return;
+    const s = _steps[idx];
+
+    const W = 800, H = 420;
+    const pL = 72, pR = 24, pT = 30, pB = 46;
+    const pW = W - pL - pR, pH = H - pT - pB;
+
+    /* X range: a bit wider than initial bracket */
+    const rng  = _initB - _initA;
+    const xMin = _initA - rng * 0.28;
+    const xMax = _initB + rng * 0.28;
+
+    /* Sample f for Y range */
+    const N  = 500;
+    const xs = Array.from({ length: N + 1 }, (_, i) => xMin + (xMax - xMin) * i / N);
+    const ys = xs.map(x => { const v = _fn(x); return isFinite(v) ? v : null; });
+    const valid = ys.filter(y => y != null);
+    if (!valid.length) return;
+
+    let yMin = Math.min(...valid), yMax = Math.max(...valid);
+    const yMg = (yMax - yMin) * 0.14 || 1;
+    yMin -= yMg; yMax += yMg;
+
+    const tx = x => pL + (x - xMin) / (xMax - xMin) * pW;
+    const ty = y => pT + (1 - (y - yMin) / (yMax - yMin)) * pH;
+
+    /* Curve path */
+    let path = '', pen = false;
+    for (let i = 0; i <= N; i++) {
+      if (ys[i] == null) { pen = false; continue; }
+      const px = tx(xs[i]).toFixed(1), py = ty(ys[i]).toFixed(1);
+      path += pen ? ` L${px} ${py}` : `M${px} ${py}`;
+      pen = true;
+    }
+
+    const xAY = ty(0), yAX = tx(0);
+
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">`;
+
+    /* Grid */
+    for (let i = 0; i <= 8; i++) {
+      const gx = (pL + i * pW / 8).toFixed(1);
+      svg += `<line x1="${gx}" y1="${pT}" x2="${gx}" y2="${pT + pH}" stroke="rgba(61,102,148,.15)" stroke-width="1"/>`;
+    }
+    for (let i = 0; i <= 6; i++) {
+      const gy = (pT + i * pH / 6).toFixed(1);
+      svg += `<line x1="${pL}" y1="${gy}" x2="${pL + pW}" y2="${gy}" stroke="rgba(61,102,148,.15)" stroke-width="1"/>`;
+    }
+
+    /* Shaded bracket */
+    const shX1 = Math.max(tx(s.a), pL).toFixed(1);
+    const shX2 = Math.min(tx(s.b), pL + pW).toFixed(1);
+    const shW  = (Math.max(0, shX2 - shX1)).toFixed(1);
+    svg += `<rect x="${shX1}" y="${pT}" width="${shW}" height="${pH}" fill="rgba(201,120,75,.07)"/>`;
+
+    /* Axes */
+    if (xAY > pT && xAY < pT + pH)
+      svg += `<line x1="${pL}" y1="${xAY.toFixed(1)}" x2="${pL + pW}" y2="${xAY.toFixed(1)}" stroke="#AEC0D6" stroke-width="1.5"/>`;
+    if (yAX > pL && yAX < pL + pW)
+      svg += `<line x1="${yAX.toFixed(1)}" y1="${pT}" x2="${yAX.toFixed(1)}" y2="${pT + pH}" stroke="#AEC0D6" stroke-width="1.5"/>`;
+
+    /* X-axis tick labels */
+    for (let i = 0; i <= 8; i++) {
+      const xv = xMin + (xMax - xMin) * i / 8;
+      const xp = (pL + i * pW / 8).toFixed(1);
+      svg += `<text x="${xp}" y="${pT + pH + 16}" text-anchor="middle" font-size="10" fill="#7B93B0" font-family="IBM Plex Mono,monospace">${xv.toFixed(3)}</text>`;
+      svg += `<line x1="${xp}" y1="${pT + pH}" x2="${xp}" y2="${pT + pH + 5}" stroke="#3D6694" stroke-width="1"/>`;
+    }
+    /* Y-axis tick labels */
+    for (let i = 0; i <= 6; i++) {
+      const yv = yMin + (yMax - yMin) * (1 - i / 6);
+      const yp = (pT + i * pH / 6).toFixed(1);
+      svg += `<text x="${pL - 7}" y="${+yp + 3}" text-anchor="end" font-size="10" fill="#7B93B0" font-family="IBM Plex Mono,monospace">${yv.toFixed(3)}</text>`;
+      svg += `<line x1="${pL - 4}" y1="${yp}" x2="${pL}" y2="${yp}" stroke="#3D6694" stroke-width="1"/>`;
+    }
+
+    /* Axis labels */
+    svg += `<text x="${(pL + pW / 2).toFixed(0)}" y="${H - 4}" text-anchor="middle" font-size="11" fill="#AEC0D6" font-family="IBM Plex Sans Condensed,sans-serif">x</text>`;
+    svg += `<text x="13" y="${(pT + pH / 2).toFixed(0)}" text-anchor="middle" font-size="11" fill="#AEC0D6" font-family="IBM Plex Sans Condensed,sans-serif" transform="rotate(-90 13 ${(pT + pH / 2).toFixed(0)})">f(x)</text>`;
+
+    /* Initial bracket ghost lines (faint, when narrowed) */
+    if (s.a > _initA) {
+      const x0 = tx(_initA).toFixed(1);
+      svg += `<line x1="${x0}" y1="${pT}" x2="${x0}" y2="${pT + pH}" stroke="#3D6694" stroke-width="1" opacity="0.35" stroke-dasharray="3 5"/>`;
+    }
+    if (s.b < _initB) {
+      const x0 = tx(_initB).toFixed(1);
+      svg += `<line x1="${x0}" y1="${pT}" x2="${x0}" y2="${pT + pH}" stroke="#3D6694" stroke-width="1" opacity="0.35" stroke-dasharray="3 5"/>`;
+    }
+
+    /* Current bracket lines */
+    const aX = tx(s.a).toFixed(1), bX = tx(s.b).toFixed(1), cX = tx(s.c).toFixed(1);
+    svg += `<line x1="${aX}" y1="${pT}" x2="${aX}" y2="${pT + pH}" stroke="#7FA68C" stroke-width="1.8" stroke-dasharray="6 3"/>`;
+    svg += `<line x1="${bX}" y1="${pT}" x2="${bX}" y2="${pT + pH}" stroke="#7FA68C" stroke-width="1.8" stroke-dasharray="6 3"/>`;
+    svg += `<line x1="${cX}" y1="${pT}" x2="${cX}" y2="${pT + pH}" stroke="#E2945F" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.8"/>`;
+
+    /* Function curve — drawn above bracket lines */
+    svg += `<path d="${path}" fill="none" stroke="#7FA68C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+    /* Points on curve + drop lines to axis */
+    const plotPt = (xv, lbl, col, r) => {
+      const yv = _fn(xv);
+      if (!isFinite(yv)) return '';
+      const px = tx(xv).toFixed(1), py = ty(yv).toFixed(1);
+      const axY = isFinite(ty(0)) ? Math.max(pT, Math.min(pT + pH, ty(0))).toFixed(1) : (pT + pH);
+      return [
+        `<line x1="${px}" y1="${py}" x2="${px}" y2="${axY}" stroke="${col}" stroke-width="1" stroke-dasharray="3 3" opacity="0.45"/>`,
+        `<circle cx="${px}" cy="${py}" r="${r}" fill="${col}" stroke="#081729" stroke-width="1.5"/>`,
+        `<text x="${px}" y="${+py - r - 4}" text-anchor="middle" font-size="11" fill="${col}" font-family="IBM Plex Mono,monospace" font-weight="500">${lbl}</text>`,
+      ].join('');
+    };
+
+    svg += plotPt(s.a, 'a', '#7FA68C', 5);
+    svg += plotPt(s.b, 'b', '#7FA68C', 5);
+    svg += plotPt(s.c, 'c', '#E2945F', 6.5);
+
+    /* Step label overlay */
+    svg += `<rect x="${pL + 6}" y="${pT + 6}" width="280" height="20" rx="2" fill="rgba(8,23,41,.75)"/>`;
+    svg += `<text x="${pL + 13}" y="${pT + 20}" font-size="11" fill="#AEC0D6" font-family="IBM Plex Mono,monospace">` +
+      `Step ${s.n}  ·  a=${fmt(s.a, 5)}  b=${fmt(s.b, 5)}  c=${fmt(s.c, 5)}</text>`;
+
+    svg += '</svg>';
+    D.bisGr.innerHTML = svg;
+
+    /* Readings */
+    D.readA.textContent  = fmt(s.a);
+    D.readB.textContent  = fmt(s.b);
+    D.readC.textContent  = fmt(s.c);
+    D.readFc.textContent = fmt(s.fc);
+    if (s.converged) {
+      D.readConvW.hidden = false;
+      D.readConv.textContent = s.reason;
+    } else {
+      D.readConvW.hidden = true;
+    }
+    D.stepInd.textContent = `Step ${s.n} of ${_steps.length}`;
+    D.prevBtn.disabled = (idx === 0);
+    D.nextBtn.disabled = (idx >= _steps.length - 1);
+
+    /* Sync active table row */
+    Array.from(D.tBody.querySelectorAll('tr')).forEach((r, i) => {
+      r.classList.toggle('active-row', i === idx);
+    });
+    D.tBody.querySelectorAll('tr')[idx]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  /* ================================================================
+     HERO ANIMATION
+     Animates bisection on f(x)=x³−x−2 over [1,2]
+     ================================================================ */
+  function initHero() {
+    const hFn = x => x * x * x - x - 2;
+    const hSteps = [];
+    let ha = 1, hb = 2;
+    for (let i = 0; i < 9; i++) {
+      const c = (ha + hb) / 2;
+      hSteps.push({ a: ha, b: hb, c });
+      if (hFn(ha) * hFn(c) < 0) hb = c; else ha = c;
+    }
+
+    const draw = idx => {
+      const s  = hSteps[idx];
+      D.heroLbl.textContent = `step ${idx + 1}`;
+
+      const W = 520, H = 240;
+      const pL = 34, pR = 12, pT = 16, pB = 28;
+      const pW = W - pL - pR, pH = H - pT - pB;
+      const yLo = -6, yHi = 6;
+      const tx = x => pL + (x - 0.6) / 1.8 * pW;
+      const ty = y => pT + (1 - (y - yLo) / (yHi - yLo)) * pH;
+
+      let p = '', pen = false;
+      for (let i = 0; i <= 300; i++) {
+        const x = 0.6 + 1.8 * i / 300, y = hFn(x);
+        if (!isFinite(y) || y < yLo - 1 || y > yHi + 1) { pen = false; continue; }
+        const py = Math.max(pT, Math.min(pT + pH, ty(y))).toFixed(1);
+        p += pen ? ` L${tx(x).toFixed(1)} ${py}` : `M${tx(x).toFixed(1)} ${py}`;
+        pen = true;
+      }
+
+      const xAY = ty(0).toFixed(1);
+      const aX = tx(s.a).toFixed(1), bX = tx(s.b).toFixed(1), cX = tx(s.c).toFixed(1);
+
+      let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+      /* Grid */
+      for (let i = 0; i <= 5; i++) {
+        svg += `<line x1="${(pL + i * pW / 5).toFixed(0)}" y1="${pT}" x2="${(pL + i * pW / 5).toFixed(0)}" y2="${pT + pH}" stroke="rgba(61,102,148,.2)" stroke-width="1"/>`;
+        svg += `<line x1="${pL}" y1="${(pT + i * pH / 5).toFixed(0)}" x2="${pL + pW}" y2="${(pT + i * pH / 5).toFixed(0)}" stroke="rgba(61,102,148,.2)" stroke-width="1"/>`;
+      }
+      /* Bracket shade */
+      svg += `<rect x="${aX}" y="${pT}" width="${(tx(s.b) - tx(s.a)).toFixed(1)}" height="${pH}" fill="rgba(201,120,75,.1)"/>`;
+      /* X-axis */
+      svg += `<line x1="${pL}" y1="${xAY}" x2="${pL + pW}" y2="${xAY}" stroke="#AEC0D6" stroke-width="1.5"/>`;
+      /* Bracket lines */
+      svg += `<line x1="${aX}" y1="${pT}" x2="${aX}" y2="${pT + pH}" stroke="#7FA68C" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+      svg += `<line x1="${bX}" y1="${pT}" x2="${bX}" y2="${pT + pH}" stroke="#7FA68C" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+      svg += `<line x1="${cX}" y1="${pT}" x2="${cX}" y2="${pT + pH}" stroke="#E2945F" stroke-width="1.5" stroke-dasharray="3 3" opacity=".8"/>`;
+      /* Curve */
+      svg += `<path d="${p}" fill="none" stroke="#7FA68C" stroke-width="2"/>`;
+      /* c dot */
+      const cY = hFn(s.c);
+      if (isFinite(cY)) svg += `<circle cx="${cX}" cy="${ty(cY).toFixed(1)}" r="5" fill="#E2945F" stroke="#081729" stroke-width="1.5"/>`;
+      /* Labels */
+      [['a', aX, '#7FA68C'], ['b', bX, '#7FA68C'], ['c', cX, '#E2945F']].forEach(([l, x, col]) => {
+        svg += `<text x="${x}" y="${H - 5}" text-anchor="middle" font-size="11" fill="${col}" font-family="IBM Plex Mono,monospace">${l}</text>`;
+      });
+      svg += '</svg>';
+      D.heroGr.innerHTML = svg;
+    };
+
+    draw(0);
+    let hi = 0;
+    _heroTmr = setInterval(() => { hi = (hi + 1) % hSteps.length; draw(hi); }, 1650);
+  }
+
+  /* ================================================================
+     STATUS MESSAGES
+     ================================================================ */
+  function showStatus(msg, type = 'error') {
+    D.statusMsg.textContent = msg;
+    D.statusMsg.className   = `status-msg ${type}`;
+    D.statusMsg.hidden      = false;
+  }
+  function clearStatus() { D.statusMsg.hidden = true; }
+
+  /* ================================================================
+     SOLVE
+     ================================================================ */
+  function solve(e) {
+    e?.preventDefault();
+    clearStatus();
+    if (_playTmr) { clearInterval(_playTmr); _playTmr = null; D.playBtn.textContent = '▶'; }
+
+    /* --- f(x) --- */
+    const fxRaw = D.fxInput.value.trim();
+    if (!fxRaw) return showStatus('Enter a function f(x) first.');
+    const fn = compileFn(fxRaw);
+    if (!fn) return showStatus(`Cannot parse "${fxRaw}". Check your syntax — expand the tutorial below.`);
+
+    /* --- bounds --- */
+    const aRaw = D.aInput.value.trim(), bRaw = D.bInput.value.trim();
+    if (!aRaw || !bRaw) return showStatus('Enter both bounds a and b (you can use e, pi, sqrt(2), etc.).');
+
+    const a = parseVal(aRaw), b = parseVal(bRaw);
+    if (isNaN(a)) return showStatus(`Cannot evaluate a = "${aRaw}". Use a number or an expression like e, pi, 2*pi.`);
+    if (isNaN(b)) return showStatus(`Cannot evaluate b = "${bRaw}". Use a number or an expression like e, pi, 2*pi.`);
+    if (a >= b)   return showStatus('Bound a must be strictly less than b.');
+
+    /* --- sign check --- */
+    const fa = fn(a), fb = fn(b);
+    if (!isFinite(fa)) return showStatus(`f(a) = f(${fmt(a, 5)}) is not finite. Check your function and bounds.`);
+    if (!isFinite(fb)) return showStatus(`f(b) = f(${fmt(b, 5)}) is not finite. Check your function and bounds.`);
+    if (fa === 0) return showStatus(`a = ${fmt(a, 6)} is already a root — f(a) = 0!`, 'success');
+    if (fb === 0) return showStatus(`b = ${fmt(b, 6)} is already a root — f(b) = 0!`, 'success');
+    if (fa * fb > 0)
+      return showStatus(`No sign change: f(${fmt(a, 4)}) = ${fmt(fa, 5)} and f(${fmt(b, 4)}) = ${fmt(fb, 5)} have the same sign. Bisection needs f(a)·f(b) < 0.`);
+
+    /* --- true root --- */
+    const trRaw = D.trueIn.value.trim();
+    _trueRoot = trRaw ? parseVal(trRaw) : null;
+
+    /* --- stop mode --- */
+    const mode = document.querySelector('[name="stopMode"]:checked')?.value || 'auto';
+    let param  = null;
+    if (mode === 'iterations') {
+      param = parseInt($('iter-count').value);
+      if (isNaN(param) || param < 1) return showStatus('Enter a valid iteration count (≥ 1).');
+    } else if (mode === 'tolerance') {
+      param = parseFloat($('tol-value').value);
+      if (isNaN(param) || param <= 0) return showStatus('Enter a valid positive tolerance.');
+    }
+
+    /* --- run --- */
+    _fn    = fn;
+    _initA = a;
+    _initB = b;
+    _steps = bisect(fn, a, b, mode, param, _trueRoot);
+
+    if (!_steps.length) return showStatus('No steps produced — check your inputs.');
+
+    _idx = 0;
+    D.solSec.hidden = false;
+    D.vizSec.hidden = false;
+    D.tblSec.hidden = false;
+
+    renderSolBox();
+    renderTable();
+    renderGraph(0);
+
+    D.solSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ================================================================
+     PLAYBACK
+     ================================================================ */
+  function goTo(idx) {
+    _idx = Math.max(0, Math.min(idx, _steps.length - 1));
+    renderGraph(_idx);
+  }
+
+  function togglePlay() {
+    if (_playTmr) {
+      clearInterval(_playTmr); _playTmr = null;
+      D.playBtn.textContent = '▶';
+      D.playBtn.setAttribute('aria-label', 'Play');
+    } else {
+      if (_idx >= _steps.length - 1) _idx = -1;
+      D.playBtn.textContent = '⏸';
+      D.playBtn.setAttribute('aria-label', 'Pause');
+      _playTmr = setInterval(() => {
+        _idx++;
+        if (_idx >= _steps.length) {
+          clearInterval(_playTmr); _playTmr = null;
+          D.playBtn.textContent = '▶';
+          D.playBtn.setAttribute('aria-label', 'Play');
+          return;
+        }
+        renderGraph(_idx);
+      }, +D.speedSel.value);
+    }
+  }
+
+  /* ================================================================
+     RESET
+     ================================================================ */
+  function reset() {
+    if (_playTmr) { clearInterval(_playTmr); _playTmr = null; }
+    D.fxInput.value = '';
+    D.aInput.value  = '';
+    D.bInput.value  = '';
+    D.trueIn.value  = '';
+    D.fxDot.className = 'validity-dot';
+    clearStatus();
+    D.solSec.hidden = true;
+    D.vizSec.hidden = true;
+    D.tblSec.hidden = true;
+    _steps = []; _idx = 0; _fn = null;
+    D.playBtn.textContent = '▶';
+    D.prevBtn.disabled = true;
+    D.nextBtn.disabled = true;
+  }
+
+  /* ================================================================
+     EXPORTS
+     ================================================================ */
+
+  /* Helper: escape HTML in user-supplied strings */
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* --- Download as HTML --- */
+  function exportHTML() {
+    if (!_steps.length) return;
+    const fa = _fn(_initA), fb = _fn(_initB);
+    const last = _steps[_steps.length - 1];
+    const hasTrue = (_trueRoot != null && isFinite(_trueRoot));
+
+    const rows = _steps.map(s => {
+      const sc = v => v < 0 ? '#D9776B' : (v > 0 ? '#7FA68C' : '#EDEAE0');
+      const ml = miniLine(s.a, s.b, s.c);
+      return `<tr${s.converged ? ' class="conv"' : ''}>
+        <td>${s.n}</td>
+        <td>${fmt(s.a)}</td><td>${fmt(s.b)}</td>
+        <td style="color:${sc(s.fa)}">${fmt(s.fa)}</td>
+        <td style="color:${sc(s.fb)}">${fmt(s.fb)}</td>
+        <td style="color:#E2945F;font-weight:600">${fmt(s.c)}</td>
+        <td style="color:${sc(s.fc)}">${fmt(s.fc)}</td>
+        <td>${fmtE(s.ae)}</td>
+        <td>${(s.re != null && !isNaN(s.re)) ? fmtE(s.re) : '—'}</td>
+        <td style="vertical-align:middle;padding:3px 8px">${ml}</td>
+      </tr>`;
+    }).join('\n');
+
+    const aeNote = hasTrue
+      ? `AE = |c − ${fmt(_trueRoot, 6)}|  (exact true error),  RE = AE / |true root|`
+      : `AE = (b − a) / 2  (guaranteed error bound),  RE = AE / |c|`;
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Bisection — ${escHtml(D.fxInput.value.trim())}</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{background:#0F2240;color:#EDEAE0;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:36px 44px;margin:0;line-height:1.5}
+h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:1.6rem;color:#E2945F;margin:0 0 4px;letter-spacing:.01em}
+.sub{color:#7B93B0;font-size:.72rem;margin-bottom:30px;letter-spacing:.04em}
+.sec{margin-bottom:26px}
+.lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.11em;color:#7B93B0;margin-bottom:8px;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600}
+.eq-box{background:#173A60;border:1px solid rgba(61,102,148,.4);border-radius:3px;padding:12px 18px;display:inline-block;font-size:1rem}
+.eq-box strong{color:#EDEAE0}
+.bk-box{background:#173A60;border:1px solid rgba(61,102,148,.4);border-radius:3px;padding:14px 18px;display:flex;flex-direction:column;gap:9px}
+.bc-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.88rem}
+.bc-row.ivt{margin-top:4px;padding-top:10px;border-top:1px solid rgba(61,102,148,.3)}
+.pill{font-size:.69rem;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.03em}
+.pill.neg{background:rgba(217,119,107,.18);color:#F4D9D5;border:1px solid rgba(217,119,107,.35)}
+.pill.pos{background:rgba(127,166,140,.18);color:#DCEAE1;border:1px solid rgba(127,166,140,.35)}
+.pill.ok{background:rgba(127,166,140,.18);color:#7FA68C;border:1px solid rgba(127,166,140,.35)}
+.faint{font-size:.78rem;color:#7B93B0}
+.result-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.root{font-size:1.3rem;color:#E2945F;background:#173A60;border:1px solid rgba(201,120,75,.3);border-radius:3px;padding:10px 18px;display:inline-block}
+.conv{font-size:.7rem;color:#7FA68C;background:rgba(127,166,140,.1);border:1px solid rgba(127,166,140,.3);padding:4px 10px;border-radius:10px;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600}
+table{border-collapse:collapse;width:100%;min-width:860px}
+th{color:#7B93B0;font-size:.64rem;text-transform:uppercase;letter-spacing:.07em;padding:8px 10px;text-align:right;border-bottom:1px solid rgba(61,102,148,.4);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:7px 10px;text-align:right;border-bottom:1px solid rgba(61,102,148,.18);white-space:nowrap;font-size:.83rem}
+td:first-child{text-align:left}
+tr.conv td{color:#7FA68C}
+.note{font-size:.7rem;color:#7B93B0;margin-top:8px}
+.foot{margin-top:32px;font-size:.7rem;color:#3D6694;border-top:1px dashed rgba(61,102,148,.3);padding-top:12px;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<h1>Bisection Method</h1>
+<div class="sub">Numerical Analysis Workbench &nbsp;·&nbsp; generated ${new Date().toLocaleString()}</div>
+
+<div class="sec">
+  <div class="lbl">Equation</div>
+  <div class="eq-box">f(x) = <strong>${escHtml(D.fxInput.value.trim())}</strong></div>
+</div>
+
+<div class="sec">
+  <div class="lbl">Finding the bracket — IVT sign check</div>
+  <div class="bk-box">
+    <div class="bc-row">
+      <code>f(a) = f(${fmt(_initA, 5)}) = ${fmt(fa, 8)}</code>
+      <span class="pill ${fa < 0 ? 'neg' : 'pos'}">${fa < 0 ? '− negative' : '+ positive'}</span>
+    </div>
+    <div class="bc-row">
+      <code>f(b) = f(${fmt(_initB, 5)}) = ${fmt(fb, 8)}</code>
+      <span class="pill ${fb < 0 ? 'neg' : 'pos'}">${fb < 0 ? '− negative' : '+ positive'}</span>
+    </div>
+    <div class="bc-row ivt">
+      <code>f(a) · f(b) = ${fmt(fa * fb, 5)} &lt; 0</code>
+      <span class="pill ok">✓ IVT satisfied</span>
+      <span class="faint">→ root exists in [${fmt(_initA, 5)}, ${fmt(_initB, 5)}] by IVT</span>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="lbl">Iteration table</div>
+  <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>Step</th><th>a</th><th>b</th><th>f(a)</th><th>f(b)</th>
+        <th>c = (a+b)/2</th><th>f(c)</th><th>AE</th><th>RE</th><th>Bracket</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+  <p class="note">${aeNote}</p>
+</div>
+
+<div class="sec">
+  <div class="lbl">Result — after ${_steps.length} iteration${_steps.length !== 1 ? 's' : ''}</div>
+  <div class="result-row">
+    <span class="root">Root ≈ ${fmt(last.c, 10)}</span>
+    ${last.converged ? `<span class="conv">✓ ${escHtml(last.reason)}</span>` : ''}
+    ${hasTrue ? `<span class="faint">true AE: ${fmtE(Math.abs(last.c - _trueRoot))}</span>` : ''}
+  </div>
+</div>
+
+<div class="foot">
+  <span>Bisection method · ${_steps.length} iterations · interval [${fmt(_initA, 5)}, ${fmt(_initB, 5)}]</span>
+  <span>Built by <a href="https://mehedy.netlify.app/" style="color:#C9784B;text-decoration:none">Mehedy</a></span>
+</div>
+</body></html>`;
+
+    dl(new Blob([html], { type: 'text/html;charset=utf-8' }), `bisection_${ts()}.html`);
+  }
+
+  /* --- Download as PNG image --- */
+  async function exportImage() {
+    if (!_steps.length) return;
+    const btn = D.expImg;
+    btn.textContent = 'Capturing…'; btn.disabled = true;
+    const credit = mkCredit();
+    try {
+      const canvas = await html2canvas($('capture-target'), { backgroundColor: '#173A60', scale: 2, logging: false });
+      dl(await canvasBlob(canvas), `bisection_${ts()}.png`);
+    } catch (err) { alert('Image export failed: ' + err.message); }
+    finally { credit.remove(); btn.textContent = 'Download as image'; btn.disabled = false; }
+  }
+
+  /* --- Download as PDF --- */
+  async function exportPDF() {
+    if (!_steps.length) return;
+    const btn = D.expPdf;
+    btn.textContent = 'Generating…'; btn.disabled = true;
+    const credit = mkCredit();
+    try {
+      const canvas  = await html2canvas($('capture-target'), { backgroundColor: '#173A60', scale: 2, logging: false });
+      const { jsPDF } = window.jspdf;
+      const pdf     = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+      const pgW     = pdf.internal.pageSize.getWidth();
+      const pgH     = pdf.internal.pageSize.getHeight();
+      const imgData = canvas.toDataURL('image/png');
+      const imgH    = (canvas.height / canvas.width) * pgW;
+      if (imgH <= pgH) {
+        pdf.addImage(imgData, 'PNG', 0, 0, pgW, imgH);
+      } else {
+        let yOff = 0;
+        while (yOff < imgH) {
+          if (yOff > 0) pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, -yOff, pgW, imgH);
+          yOff += pgH;
+        }
+      }
+      pdf.save(`bisection_${ts()}.pdf`);
+    } catch (err) { alert('PDF export failed: ' + err.message); }
+    finally { credit.remove(); btn.textContent = 'Download as PDF'; btn.disabled = false; }
+  }
+
+  /* --- export helpers --- */
+  function ts() { return Date.now(); }
+  function dl(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 6000);
+  }
+  function canvasBlob(canvas) {
+    return new Promise(res => canvas.toBlob(res, 'image/png'));
+  }
+  function mkCredit() {
+    const el = document.createElement('div');
+    el.className = 'capture-credit';
+    el.innerHTML = `f(x) = ${escHtml(D.fxInput.value.trim())} · Bisection Method · ${new Date().toLocaleDateString()}`;
+    $('capture-target').appendChild(el);
+    return el;
+  }
+
+  /* ================================================================
+     EVENT LISTENERS
+     ================================================================ */
+  $('bisection-form').addEventListener('submit', solve);
+  $('reset-btn').addEventListener('click', reset);
+
+  D.prevBtn.addEventListener('click', () => goTo(_idx - 1));
+  D.nextBtn.addEventListener('click', () => goTo(_idx + 1));
+  D.playBtn.addEventListener('click', togglePlay);
+  D.speedSel.addEventListener('change', () => {
+    if (_playTmr) { togglePlay(); togglePlay(); } /* restart at new speed */
+  });
+
+  D.expImg.addEventListener('click',  exportImage);
+  D.expPdf.addEventListener('click',  exportPDF);
+  D.expHtml.addEventListener('click', exportHTML);
+
+  /* Load example */
+  $('load-example').addEventListener('click', () => {
+    const ex = EXAMPLES[_exIdx++ % EXAMPLES.length];
+    D.fxInput.value = ex.fx;
+    D.aInput.value  = ex.a;
+    D.bInput.value  = ex.b;
+    D.fxDot.className = 'validity-dot ok';
+    clearStatus();
+    showStatus(`Example loaded: ${ex.note}`, 'success');
+  });
+
+  /* Live f(x) validation */
+  let _fxTimer;
+  D.fxInput.addEventListener('input', () => {
+    clearTimeout(_fxTimer);
+    _fxTimer = setTimeout(() => {
+      const v = D.fxInput.value.trim();
+      if (!v) { D.fxDot.className = 'validity-dot'; return; }
+      const fn = compileFn(v);
+      if (!fn) { D.fxDot.className = 'validity-dot bad'; return; }
+      const t = fn(1);
+      D.fxDot.className = isFinite(t) ? 'validity-dot ok' : 'validity-dot bad';
+    }, 280);
+  });
+
+  /* Stop-mode radio toggle */
+  document.querySelectorAll('.stop-option input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.stop-option').forEach(opt => {
+        opt.classList.remove('active-mode');
+        const sub = opt.querySelector('.sub-input');
+        if (sub) sub.disabled = true;
+      });
+      const opt = radio.closest('.stop-option');
+      opt.classList.add('active-mode');
+      const sub = opt.querySelector('.sub-input');
+      if (sub) { sub.disabled = false; sub.focus(); }
+    });
+  });
+  /* Initialise disabled state */
+  document.querySelectorAll('.stop-option').forEach(opt => {
+    const radio = opt.querySelector('input[type="radio"]');
+    const sub   = opt.querySelector('.sub-input');
+    if (radio?.checked) { opt.classList.add('active-mode'); if (sub) sub.disabled = false; }
+    else if (sub)       sub.disabled = true;
+  });
+
+  /* ================================================================
+     INIT
+     ================================================================ */
+  initHero();
+
+})();
+</script>
 </body>
 </html>
