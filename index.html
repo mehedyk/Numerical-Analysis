@@ -309,7 +309,7 @@
                     <tr><td>Absolute value</td><td><code>abs(x)</code></td></tr>
                   </tbody>
                 </table>
-                <div class="note-box info">The bounds a and b also accept expressions: type <code>e</code>, <code>pi</code>, <code>2*pi</code>, <code>sqrt(2)</code>, etc.</div>
+                <div class="note-box info">The bounds a and b also accept expressions: type <code>e</code>, <code>pi</code>, <code>2*pi</code>, <code>sqrt(2)</code>, etc. Both must be 0 or greater — negative bounds aren't supported.</div>
                 <div class="note-box" style="margin-top:8px;">In this parser, <code>log(x)</code> is the <em>natural</em> log (same as <code>ln(x)</code>). Use <code>log10(x)</code> for base-10.</div>
               </div>
             </details>
@@ -448,7 +448,6 @@
         <div class="export-row">
           <button type="button" class="btn" id="export-image-btn">Download as image</button>
           <button type="button" class="btn" id="export-pdf-btn">Download as PDF</button>
-          <button type="button" class="btn" id="export-html-btn">Download as HTML</button>
           <span class="export-note">Exports include the equation, bracket check, and full iteration log.</span>
         </div>
       </div>
@@ -534,7 +533,6 @@
     tblNote:  $('table-note'),
     expImg:   $('export-image-btn'),
     expPdf:   $('export-pdf-btn'),
-    expHtml:  $('export-html-btn'),
   };
 
   /* ================================================================
@@ -581,7 +579,8 @@
 
   /* ================================================================
      AUTO BRACKET FINDERS
-     Two strategies:
+     Two strategies, both restricted to a, b ≥ 0 — bounds never go
+     negative:
      - Whole-number (default): scans consecutive integers for a sign
        change, so a/b come out as clean numbers like 1, 2 — the way
        textbook brackets usually look.
@@ -590,8 +589,8 @@
      ================================================================ */
   function findBracketAutoWhole(fn) {
     const N = 1000;
-    let prevX = -N, prevY = fn(-N);
-    for (let x = -N + 1; x <= N; x++) {
+    let prevX = 0, prevY = fn(0);
+    for (let x = 1; x <= N; x++) {
       const y = fn(x);
       if (isFinite(prevY) && prevY === 0) return [prevX, prevX + 1];
       if (isFinite(prevY) && isFinite(y) && prevY * y < 0) return [prevX, x];
@@ -602,9 +601,9 @@
 
   function findBracketAutoFine(fn) {
     const windows = [
-      { lo: -10,   hi: 10,   n: 400 },
-      { lo: -100,  hi: 100,  n: 500 },
-      { lo: -1000, hi: 1000, n: 600 },
+      { lo: 0, hi: 10,   n: 400 },
+      { lo: 0, hi: 100,  n: 500 },
+      { lo: 0, hi: 1000, n: 600 },
     ];
     for (const { lo, hi, n } of windows) {
       const step = (hi - lo) / n;
@@ -1048,6 +1047,8 @@
       a = parseVal(aRaw); b = parseVal(bRaw);
       if (isNaN(a)) return showStatus(`Cannot evaluate a = "${aRaw}". Use a number or an expression like e, pi, 2*pi.`);
       if (isNaN(b)) return showStatus(`Cannot evaluate b = "${bRaw}". Use a number or an expression like e, pi, 2*pi.`);
+      if (a < 0)    return showStatus(`Bound a must be 0 or greater — negative bounds aren't supported. Got a = ${fmt(a)}.`);
+      if (b < 0)    return showStatus(`Bound b must be 0 or greater — negative bounds aren't supported. Got b = ${fmt(b)}.`);
       if (a >= b)   return showStatus('Bound a must be strictly less than b.');
       D.bracketHint.hidden = true;
     } else {
@@ -1177,129 +1178,6 @@
   /* Helper: escape HTML in user-supplied strings */
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  /* --- Download as HTML --- */
-  function exportHTML() {
-    if (!_steps.length) return;
-    const fa = _fn(_initA), fb = _fn(_initB);
-    const last = _steps[_steps.length - 1];
-    const hasTrue = (_trueRoot != null && isFinite(_trueRoot));
-
-    const rows = _steps.map(s => {
-      const sc = v => v < 0 ? '#D9776B' : (v > 0 ? '#7FA68C' : '#EDEAE0');
-      const ml = miniLine(s.a, s.b, s.c);
-      return `<tr${s.converged ? ' class="conv"' : ''}>
-        <td>${s.n}</td>
-        <td>${fmt(s.a)}</td><td>${fmt(s.b)}</td>
-        <td style="color:${sc(s.fa)}">${fmt(s.fa)}</td>
-        <td style="color:${sc(s.fb)}">${fmt(s.fb)}</td>
-        <td style="color:#E2945F;font-weight:600">${fmt(s.c)}</td>
-        <td style="color:${sc(s.fc)}">${fmt(s.fc)}</td>
-        <td>${fmtE(s.ae)}</td>
-        <td>${(s.re != null && !isNaN(s.re)) ? fmtE(s.re) : '—'}</td>
-        <td style="vertical-align:middle;padding:3px 8px">${ml}</td>
-      </tr>`;
-    }).join('\n');
-
-    const aeNote = hasTrue
-      ? `AE = |c − ${fmt(_trueRoot)}|  (exact true error),  RE = AE / |true root|`
-      : `AE = (b − a) / 2  (guaranteed error bound),  RE = AE / |c|`;
-
-    const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<title>Bisection — ${escHtml(D.fxInput.value.trim())}</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box}
-body{background:#0F2240;color:#EDEAE0;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:36px 44px;margin:0;line-height:1.5}
-h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:1.6rem;color:#E2945F;margin:0 0 4px;letter-spacing:.01em}
-.sub{color:#7B93B0;font-size:.72rem;margin-bottom:30px;letter-spacing:.04em}
-.sec{margin-bottom:26px}
-.lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.11em;color:#7B93B0;margin-bottom:8px;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600}
-.eq-box{background:#173A60;border:1px solid rgba(61,102,148,.4);border-radius:3px;padding:12px 18px;display:inline-block;font-size:1rem}
-.eq-box strong{color:#EDEAE0}
-.bk-box{background:#173A60;border:1px solid rgba(61,102,148,.4);border-radius:3px;padding:14px 18px;display:flex;flex-direction:column;gap:9px}
-.bc-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.88rem}
-.bc-row.ivt{margin-top:4px;padding-top:10px;border-top:1px solid rgba(61,102,148,.3)}
-.pill{font-size:.69rem;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.03em}
-.pill.neg{background:rgba(217,119,107,.18);color:#F4D9D5;border:1px solid rgba(217,119,107,.35)}
-.pill.pos{background:rgba(127,166,140,.18);color:#DCEAE1;border:1px solid rgba(127,166,140,.35)}
-.pill.ok{background:rgba(127,166,140,.18);color:#7FA68C;border:1px solid rgba(127,166,140,.35)}
-.faint{font-size:.78rem;color:#7B93B0}
-.result-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.root{font-size:1.3rem;color:#E2945F;background:#173A60;border:1px solid rgba(201,120,75,.3);border-radius:3px;padding:10px 18px;display:inline-block}
-.conv{font-size:.7rem;color:#7FA68C;background:rgba(127,166,140,.1);border:1px solid rgba(127,166,140,.3);padding:4px 10px;border-radius:10px;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600}
-table{border-collapse:collapse;width:100%;min-width:860px}
-th{color:#7B93B0;font-size:.64rem;text-transform:uppercase;letter-spacing:.07em;padding:8px 10px;text-align:right;border-bottom:1px solid rgba(61,102,148,.4);white-space:nowrap}
-th:first-child{text-align:left}
-td{padding:7px 10px;text-align:right;border-bottom:1px solid rgba(61,102,148,.18);white-space:nowrap;font-size:.83rem}
-td:first-child{text-align:left}
-tr.conv td{color:#7FA68C}
-.note{font-size:.7rem;color:#7B93B0;margin-top:8px}
-.foot{margin-top:32px;font-size:.7rem;color:#3D6694;border-top:1px dashed rgba(61,102,148,.3);padding-top:12px;display:flex;justify-content:space-between}
-</style>
-</head>
-<body>
-<h1>Bisection Method</h1>
-<div class="sub">Numerical Analysis Workbench &nbsp;·&nbsp; generated ${new Date().toLocaleString()}</div>
-
-<div class="sec">
-  <div class="lbl">Equation</div>
-  <div class="eq-box">f(x) = <strong>${escHtml(D.fxInput.value.trim())}</strong></div>
-</div>
-
-<div class="sec">
-  <div class="lbl">Finding the bracket — IVT sign check</div>
-  <div class="bk-box">
-    <div class="bc-row">
-      <code>f(a) = f(${fmt(_initA)}) = ${fmt(fa)}</code>
-      <span class="pill ${fa < 0 ? 'neg' : 'pos'}">${fa < 0 ? '− negative' : '+ positive'}</span>
-    </div>
-    <div class="bc-row">
-      <code>f(b) = f(${fmt(_initB)}) = ${fmt(fb)}</code>
-      <span class="pill ${fb < 0 ? 'neg' : 'pos'}">${fb < 0 ? '− negative' : '+ positive'}</span>
-    </div>
-    <div class="bc-row ivt">
-      <code>f(a) · f(b) = ${fmt(fa * fb)} &lt; 0</code>
-      <span class="pill ok">✓ IVT satisfied</span>
-      <span class="faint">→ root exists in [${fmt(_initA)}, ${fmt(_initB)}] by IVT</span>
-    </div>
-  </div>
-</div>
-
-<div class="sec">
-  <div class="lbl">Iteration table</div>
-  <div style="overflow-x:auto">
-    <table>
-      <thead><tr>
-        <th>Step</th><th>a</th><th>b</th><th>f(a)</th><th>f(b)</th>
-        <th>c = (a+b)/2</th><th>f(c)</th><th>AE</th><th>RE</th><th>Bracket</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div>
-  <p class="note">${aeNote}</p>
-</div>
-
-<div class="sec">
-  <div class="lbl">Result — after ${_steps.length} iteration${_steps.length !== 1 ? 's' : ''}</div>
-  <div class="result-row">
-    <span class="root">Root ≈ ${fmt(last.c)}</span>
-    ${last.converged ? `<span class="conv">✓ ${escHtml(last.reason)}</span>` : ''}
-    ${hasTrue ? `<span class="faint">true AE: ${fmtE(Math.abs(last.c - _trueRoot))}</span>` : ''}
-  </div>
-</div>
-
-<div class="foot">
-  <span>Bisection method · ${_steps.length} iterations · interval [${fmt(_initA)}, ${fmt(_initB)}]</span>
-  <span>Built by <a href="https://mehedy.netlify.app/" style="color:#C9784B;text-decoration:none">S.M. Mehedy Kawser</a> · <a href="https://mehedy.netlify.app/" style="color:#C9784B;text-decoration:none">mehedy.netlify.app</a></span>
-</div>
-</body></html>`;
-
-    dl(new Blob([html], { type: 'text/html;charset=utf-8' }), `bisection_${ts()}.html`);
   }
 
   /* --- Download as PNG image --- */
@@ -1441,7 +1319,6 @@ tr.conv td{color:#7FA68C}
 
   D.expImg.addEventListener('click',  exportImage);
   D.expPdf.addEventListener('click',  exportPDF);
-  D.expHtml.addEventListener('click', exportHTML);
 
   /* Load example */
   $('load-example').addEventListener('click', () => {
