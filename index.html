@@ -108,6 +108,7 @@
   input::placeholder{ color: var(--ink-faint); }
   input[type=text]:focus, input[type=number]:focus{ border-color: var(--copper-hi); }
   input.invalid{ border-color: var(--danger); }
+  input[type=text]:disabled, input[type=number]:disabled{ opacity:.55; cursor:not-allowed; }
   .fx-row{ display:flex; align-items:center; gap:10px; }
   .validity-dot{ width:9px; height:9px; border-radius:50%; background: var(--ink-faint); flex:none; transition: background .2s var(--ease); }
   .validity-dot.ok{ background: var(--verdigris); }
@@ -243,7 +244,7 @@
       <li class="sheet-item disabled"><span class="num">05</span> Lagrange interpolation <span class="soon">soon</span></li>
     </ul>
     <div class="sidebar-foot">
-      Built by <a href="https://mehedy.netlify.app/" target="_blank" rel="noopener">Mehedy</a><br>
+      Built by <a href="https://mehedy.netlify.app/" target="_blank" rel="noopener">S.M. Mehedy Kawser</a><br>
       Sheet rev. 2026.2
     </div>
   </nav>
@@ -314,21 +315,43 @@
             </details>
           </div>
 
+          <fieldset>
+            <legend>Bracket [a, b]</legend>
+            <div class="stop-options" id="bracket-mode-options">
+              <div class="stop-option active-mode" data-mode="bracket-auto">
+                <input type="radio" name="bracketMode" id="bracket-mode-auto" value="auto" checked />
+                <label class="opt-label" for="bracket-mode-auto">Find a and b automatically</label>
+                <span class="field-hint" style="margin:0;">scans f(x) for a sign change near the curve</span>
+              </div>
+              <div class="stop-option" data-mode="bracket-manual">
+                <input type="radio" name="bracketMode" id="bracket-mode-manual" value="manual" />
+                <label class="opt-label" for="bracket-mode-manual">I'll set a and b myself</label>
+                <span class="field-hint" style="margin:0;">type your own bounds below</span>
+              </div>
+            </div>
+          </fieldset>
+
           <!-- bounds: type="text" so users can type 'e', 'pi', etc. -->
           <div class="field-row">
             <div class="field">
               <label for="a-input">a (lower bound)</label>
-              <input type="text" id="a-input" name="a" placeholder="e.g. 1 or pi/2" autocomplete="off" />
+              <input type="text" id="a-input" name="a" placeholder="auto-detected on Solve" autocomplete="off" disabled />
             </div>
             <div class="field">
               <label for="b-input">b (upper bound)</label>
-              <input type="text" id="b-input" name="b" placeholder="e.g. 2 or e" autocomplete="off" />
+              <input type="text" id="b-input" name="b" placeholder="auto-detected on Solve" autocomplete="off" disabled />
             </div>
             <div class="field">
               <label for="true-root-input">True root (optional)</label>
               <input type="text" id="true-root-input" name="trueRoot" placeholder="if known, enables AE/RE" autocomplete="off" />
             </div>
+            <div class="field">
+              <label for="precision-input">Decimal places</label>
+              <input type="number" id="precision-input" name="precision" min="1" max="8" step="1" value="4" />
+              <p class="field-hint" style="margin-top:6px;">shown after the decimal point, anywhere from 1 to 8</p>
+            </div>
           </div>
+          <p class="field-hint" id="bracket-found-hint" hidden style="margin:-8px 0 18px;"></p>
 
           <fieldset>
             <legend>Stop after…</legend>
@@ -429,7 +452,7 @@
 
     <footer class="site-foot">
       <span>Numerical Analysis Workbench — built for learning, one bracket at a time.</span>
-      <span>Built by <a href="https://mehedy.netlify.app/" target="_blank" rel="noopener">Mehedy</a></span>
+      <span>Built by <a href="https://mehedy.netlify.app/" target="_blank" rel="noopener">S.M. Mehedy Kawser</a></span>
     </footer>
 
   </main>
@@ -453,6 +476,7 @@
   let _fn      = null;   // compiled evaluator
   let _initA, _initB, _trueRoot;
   let _exIdx   = 0;
+  let _precision = 4;    // decimal places shown everywhere (user-adjustable, 1-8)
 
   /* ================================================================
      EXAMPLES
@@ -477,6 +501,8 @@
     aInput:   $('a-input'),
     bInput:   $('b-input'),
     trueIn:   $('true-root-input'),
+    precisionIn: $('precision-input'),
+    bracketHint: $('bracket-found-hint'),
     fxDot:    $('fx-validity'),
     statusMsg:$('status-msg'),
     heroGr:   $('hero-graph'),
@@ -535,17 +561,42 @@
   }
 
   /* Format a number for table display */
-  function fmt(v, d = 6) {
+  function fmt(v, d = _precision) {
     if (v == null || isNaN(v) || !isFinite(v)) return '—';
     const a = Math.abs(v);
-    if (a > 0 && (a >= 1e7 || a < 1e-3)) return v.toExponential(4);
+    if (a > 0 && (a >= 1e7 || a < 1e-3)) return v.toExponential(d);
     return v.toFixed(d);
   }
 
   /* Scientific notation for error columns */
-  function fmtE(v) {
+  function fmtE(v, d = _precision) {
     if (v == null || isNaN(v) || !isFinite(v)) return '—';
-    return v.toExponential(4);
+    return v.toExponential(d);
+  }
+
+  /* ================================================================
+     AUTO BRACKET FINDER
+     Scans progressively wider windows around the origin for a sign
+     change in f(x), so the user doesn't have to supply a and b.
+     ================================================================ */
+  function findBracketAuto(fn) {
+    const windows = [
+      { lo: -10,   hi: 10,   n: 400 },
+      { lo: -100,  hi: 100,  n: 500 },
+      { lo: -1000, hi: 1000, n: 600 },
+    ];
+    for (const { lo, hi, n } of windows) {
+      const step = (hi - lo) / n;
+      let prevX = lo, prevY = fn(lo);
+      for (let i = 1; i <= n; i++) {
+        const x = lo + i * step;
+        const y = fn(x);
+        if (isFinite(prevY) && prevY === 0) return [prevX, prevX + step];
+        if (isFinite(prevY) && isFinite(y) && prevY * y < 0) return [prevX, x];
+        prevX = x; prevY = y;
+      }
+    }
+    return null;
   }
 
   /* ================================================================
@@ -650,17 +701,17 @@
         <div class="sol-lbl">Finding the bracket — IVT sign check on [a, b]</div>
         <div class="bracket-box">
           <div class="bc-row">
-            <code>f(a) = f(${fmt(_initA, 5)}) = ${fmt(fa, 8)}</code>
+            <code>f(a) = f(${fmt(_initA)}) = ${fmt(fa)}</code>
             <span class="sign-pill ${fa < 0 ? 'neg' : 'pos'}">${fa < 0 ? '− negative' : '+ positive'}</span>
           </div>
           <div class="bc-row">
-            <code>f(b) = f(${fmt(_initB, 5)}) = ${fmt(fb, 8)}</code>
+            <code>f(b) = f(${fmt(_initB)}) = ${fmt(fb)}</code>
             <span class="sign-pill ${fb < 0 ? 'neg' : 'pos'}">${fb < 0 ? '− negative' : '+ positive'}</span>
           </div>
           <div class="bc-row ivt-row">
-            <code>f(a) · f(b) = ${fmt(fa * fb, 5)} &lt; 0</code>
+            <code>f(a) · f(b) = ${fmt(fa * fb)} &lt; 0</code>
             <span class="sign-pill ok">✓ IVT satisfied</span>
-            <span class="ivt-note">→ root exists in [${fmt(_initA, 5)}, ${fmt(_initB, 5)}] by Intermediate Value Theorem</span>
+            <span class="ivt-note">→ root exists in [${fmt(_initA)}, ${fmt(_initB)}] by Intermediate Value Theorem</span>
           </div>
         </div>
       </div>
@@ -668,7 +719,7 @@
       <div class="sol-group">
         <div class="sol-lbl">Result — after ${_steps.length} iteration${_steps.length !== 1 ? 's' : ''}</div>
         <div class="result-row">
-          <span class="root-chip">Root ≈ ${fmt(last.c, 10)}</span>
+          <span class="root-chip">Root ≈ ${fmt(last.c)}</span>
           ${last.converged ? `<span class="conv-chip">✓ ${escHtml(last.reason)}</span>` : ''}
           ${hasTrue ? `<span class="ae-note">true absolute error: ${fmtE(Math.abs(last.c - _trueRoot))}</span>` : ''}
         </div>
@@ -689,12 +740,12 @@
 
     const last = _steps[_steps.length - 1];
     D.capSum.textContent =
-      `f(x) = ${D.fxInput.value.trim()}  ·  [${fmt(_initA, 4)}, ${fmt(_initB, 4)}]` +
+      `f(x) = ${D.fxInput.value.trim()}  ·  [${fmt(_initA)}, ${fmt(_initB)}]` +
       `  ·  ${_steps.length} iteration${_steps.length !== 1 ? 's' : ''}` +
-      `  ·  root ≈ ${fmt(last.c, 8)}${last.converged ? '  ✓' : ''}`;
+      `  ·  root ≈ ${fmt(last.c)}${last.converged ? '  ✓' : ''}`;
 
     D.tblNote.textContent = hasTrue
-      ? `AE = |c − ${fmt(_trueRoot, 6)}| (true root),  RE = AE / |true root|`
+      ? `AE = |c − ${fmt(_trueRoot)}| (true root),  RE = AE / |true root|`
       : `AE = (b − a) / 2  (guaranteed error bound),  RE = AE / |c|`;
 
     D.tBody.innerHTML = '';
@@ -845,7 +896,7 @@
     /* Step label overlay */
     svg += `<rect x="${pL + 6}" y="${pT + 6}" width="280" height="20" rx="2" fill="rgba(8,23,41,.75)"/>`;
     svg += `<text x="${pL + 13}" y="${pT + 20}" font-size="11" fill="#AEC0D6" font-family="IBM Plex Mono,monospace">` +
-      `Step ${s.n}  ·  a=${fmt(s.a, 5)}  b=${fmt(s.b, 5)}  c=${fmt(s.c, 5)}</text>`;
+      `Step ${s.n}  ·  a=${fmt(s.a)}  b=${fmt(s.b)}  c=${fmt(s.c)}</text>`;
 
     svg += '</svg>';
     D.bisGr.innerHTML = svg;
@@ -865,11 +916,11 @@
     D.prevBtn.disabled = (idx === 0);
     D.nextBtn.disabled = (idx >= _steps.length - 1);
 
-    /* Sync active table row */
+    /* Sync active table row (highlight only — no forced scrolling,
+       so the graph stays in view while the animation plays) */
     Array.from(D.tBody.querySelectorAll('tr')).forEach((r, i) => {
       r.classList.toggle('active-row', i === idx);
     });
-    D.tBody.querySelectorAll('tr')[idx]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   /* ================================================================
@@ -965,23 +1016,37 @@
     const fn = compileFn(fxRaw);
     if (!fn) return showStatus(`Cannot parse "${fxRaw}". Check your syntax — expand the tutorial below.`);
 
-    /* --- bounds --- */
-    const aRaw = D.aInput.value.trim(), bRaw = D.bInput.value.trim();
-    if (!aRaw || !bRaw) return showStatus('Enter both bounds a and b (you can use e, pi, sqrt(2), etc.).');
+    /* --- bounds: auto-detected, or typed in manually --- */
+    const bracketMode = document.querySelector('[name="bracketMode"]:checked')?.value || 'auto';
+    let a, b;
 
-    const a = parseVal(aRaw), b = parseVal(bRaw);
-    if (isNaN(a)) return showStatus(`Cannot evaluate a = "${aRaw}". Use a number or an expression like e, pi, 2*pi.`);
-    if (isNaN(b)) return showStatus(`Cannot evaluate b = "${bRaw}". Use a number or an expression like e, pi, 2*pi.`);
-    if (a >= b)   return showStatus('Bound a must be strictly less than b.');
+    if (bracketMode === 'manual') {
+      const aRaw = D.aInput.value.trim(), bRaw = D.bInput.value.trim();
+      if (!aRaw || !bRaw) return showStatus('Enter both bounds a and b (you can use e, pi, sqrt(2), etc.).');
+
+      a = parseVal(aRaw); b = parseVal(bRaw);
+      if (isNaN(a)) return showStatus(`Cannot evaluate a = "${aRaw}". Use a number or an expression like e, pi, 2*pi.`);
+      if (isNaN(b)) return showStatus(`Cannot evaluate b = "${bRaw}". Use a number or an expression like e, pi, 2*pi.`);
+      if (a >= b)   return showStatus('Bound a must be strictly less than b.');
+      D.bracketHint.hidden = true;
+    } else {
+      const found = findBracketAuto(fn);
+      if (!found) return showStatus('Could not automatically find a sign change for this function within ±1000. Switch to "I\'ll set a and b myself" and enter a bracket directly.');
+      [a, b] = found;
+      D.aInput.value = fmt(a);
+      D.bInput.value = fmt(b);
+      D.bracketHint.hidden = false;
+      D.bracketHint.textContent = `Auto-detected bracket: a = ${fmt(a)}, b = ${fmt(b)}`;
+    }
 
     /* --- sign check --- */
     const fa = fn(a), fb = fn(b);
-    if (!isFinite(fa)) return showStatus(`f(a) = f(${fmt(a, 5)}) is not finite. Check your function and bounds.`);
-    if (!isFinite(fb)) return showStatus(`f(b) = f(${fmt(b, 5)}) is not finite. Check your function and bounds.`);
-    if (fa === 0) return showStatus(`a = ${fmt(a, 6)} is already a root — f(a) = 0!`, 'success');
-    if (fb === 0) return showStatus(`b = ${fmt(b, 6)} is already a root — f(b) = 0!`, 'success');
+    if (!isFinite(fa)) return showStatus(`f(a) = f(${fmt(a)}) is not finite. Check your function and bounds.`);
+    if (!isFinite(fb)) return showStatus(`f(b) = f(${fmt(b)}) is not finite. Check your function and bounds.`);
+    if (fa === 0) return showStatus(`a = ${fmt(a)} is already a root — f(a) = 0!`, 'success');
+    if (fb === 0) return showStatus(`b = ${fmt(b)} is already a root — f(b) = 0!`, 'success');
     if (fa * fb > 0)
-      return showStatus(`No sign change: f(${fmt(a, 4)}) = ${fmt(fa, 5)} and f(${fmt(b, 4)}) = ${fmt(fb, 5)} have the same sign. Bisection needs f(a)·f(b) < 0.`);
+      return showStatus(`No sign change: f(${fmt(a)}) = ${fmt(fa)} and f(${fmt(b)}) = ${fmt(fb)} have the same sign. Bisection needs f(a)·f(b) < 0.`);
 
     /* --- true root --- */
     const trRaw = D.trueIn.value.trim();
@@ -1058,6 +1123,13 @@
     D.bInput.value  = '';
     D.trueIn.value  = '';
     D.fxDot.className = 'validity-dot';
+    /* back to auto bracket-detection mode */
+    $('bracket-mode-auto').checked = true;
+    D.aInput.disabled = true;
+    D.bInput.disabled = true;
+    document.querySelectorAll('#bracket-mode-options .stop-option').forEach(opt => opt.classList.remove('active-mode'));
+    $('bracket-mode-auto').closest('.stop-option').classList.add('active-mode');
+    D.bracketHint.hidden = true;
     clearStatus();
     D.solSec.hidden = true;
     D.vizSec.hidden = true;
@@ -1101,7 +1173,7 @@
     }).join('\n');
 
     const aeNote = hasTrue
-      ? `AE = |c − ${fmt(_trueRoot, 6)}|  (exact true error),  RE = AE / |true root|`
+      ? `AE = |c − ${fmt(_trueRoot)}|  (exact true error),  RE = AE / |true root|`
       : `AE = (b − a) / 2  (guaranteed error bound),  RE = AE / |c|`;
 
     const html = `<!DOCTYPE html>
@@ -1153,17 +1225,17 @@ tr.conv td{color:#7FA68C}
   <div class="lbl">Finding the bracket — IVT sign check</div>
   <div class="bk-box">
     <div class="bc-row">
-      <code>f(a) = f(${fmt(_initA, 5)}) = ${fmt(fa, 8)}</code>
+      <code>f(a) = f(${fmt(_initA)}) = ${fmt(fa)}</code>
       <span class="pill ${fa < 0 ? 'neg' : 'pos'}">${fa < 0 ? '− negative' : '+ positive'}</span>
     </div>
     <div class="bc-row">
-      <code>f(b) = f(${fmt(_initB, 5)}) = ${fmt(fb, 8)}</code>
+      <code>f(b) = f(${fmt(_initB)}) = ${fmt(fb)}</code>
       <span class="pill ${fb < 0 ? 'neg' : 'pos'}">${fb < 0 ? '− negative' : '+ positive'}</span>
     </div>
     <div class="bc-row ivt">
-      <code>f(a) · f(b) = ${fmt(fa * fb, 5)} &lt; 0</code>
+      <code>f(a) · f(b) = ${fmt(fa * fb)} &lt; 0</code>
       <span class="pill ok">✓ IVT satisfied</span>
-      <span class="faint">→ root exists in [${fmt(_initA, 5)}, ${fmt(_initB, 5)}] by IVT</span>
+      <span class="faint">→ root exists in [${fmt(_initA)}, ${fmt(_initB)}] by IVT</span>
     </div>
   </div>
 </div>
@@ -1185,15 +1257,15 @@ tr.conv td{color:#7FA68C}
 <div class="sec">
   <div class="lbl">Result — after ${_steps.length} iteration${_steps.length !== 1 ? 's' : ''}</div>
   <div class="result-row">
-    <span class="root">Root ≈ ${fmt(last.c, 10)}</span>
+    <span class="root">Root ≈ ${fmt(last.c)}</span>
     ${last.converged ? `<span class="conv">✓ ${escHtml(last.reason)}</span>` : ''}
     ${hasTrue ? `<span class="faint">true AE: ${fmtE(Math.abs(last.c - _trueRoot))}</span>` : ''}
   </div>
 </div>
 
 <div class="foot">
-  <span>Bisection method · ${_steps.length} iterations · interval [${fmt(_initA, 5)}, ${fmt(_initB, 5)}]</span>
-  <span>Built by <a href="https://mehedy.netlify.app/" style="color:#C9784B;text-decoration:none">Mehedy</a></span>
+  <span>Bisection method · ${_steps.length} iterations · interval [${fmt(_initA)}, ${fmt(_initB)}]</span>
+  <span>Built by <a href="https://mehedy.netlify.app/" style="color:#C9784B;text-decoration:none">S.M. Mehedy Kawser</a> · <a href="https://mehedy.netlify.app/" style="color:#C9784B;text-decoration:none">mehedy.netlify.app</a></span>
 </div>
 </body></html>`;
 
@@ -1256,7 +1328,8 @@ tr.conv td{color:#7FA68C}
   function mkCredit() {
     const el = document.createElement('div');
     el.className = 'capture-credit';
-    el.innerHTML = `f(x) = ${escHtml(D.fxInput.value.trim())} · Bisection Method · ${new Date().toLocaleDateString()}`;
+    el.innerHTML = `f(x) = ${escHtml(D.fxInput.value.trim())} · Bisection Method · ${new Date().toLocaleDateString()}` +
+      `<br>S.M. Mehedy Kawser · mehedy.netlify.app`;
     $('capture-target').appendChild(el);
     return el;
   }
@@ -1264,6 +1337,68 @@ tr.conv td{color:#7FA68C}
   /* ================================================================
      EVENT LISTENERS
      ================================================================ */
+  /* Generic radio-group toggle (active-mode highlight), scoped to each
+     fieldset's own .stop-options container so multiple radio groups
+     on the page (stop-mode, bracket-mode) don't interfere with each other */
+  document.querySelectorAll('.stop-option input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const container = radio.closest('.stop-options');
+      container.querySelectorAll('.stop-option').forEach(opt => {
+        opt.classList.remove('active-mode');
+        const sub = opt.querySelector('.sub-input');
+        if (sub) sub.disabled = true;
+      });
+      const opt = radio.closest('.stop-option');
+      opt.classList.add('active-mode');
+      const sub = opt.querySelector('.sub-input');
+      if (sub) { sub.disabled = false; sub.focus(); }
+    });
+  });
+  /* Initialise disabled state */
+  document.querySelectorAll('.stop-options').forEach(container => {
+    container.querySelectorAll('.stop-option').forEach(opt => {
+      const radio = opt.querySelector('input[type="radio"]');
+      const sub   = opt.querySelector('.sub-input');
+      if (radio?.checked) { opt.classList.add('active-mode'); if (sub) sub.disabled = false; }
+      else if (sub)       sub.disabled = true;
+    });
+  });
+
+  /* Bracket-mode toggle: auto-detect a/b vs. let the user type them in */
+  document.querySelectorAll('input[name="bracketMode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      if (!radio.checked) return;
+      const manual = radio.value === 'manual';
+      D.aInput.disabled = !manual;
+      D.bInput.disabled = !manual;
+      if (manual) {
+        D.aInput.placeholder = 'e.g. 1 or pi/2';
+        D.bInput.placeholder = 'e.g. 2 or e';
+        D.bracketHint.hidden = true;
+      } else {
+        D.aInput.placeholder = 'auto-detected on Solve';
+        D.bInput.placeholder = 'auto-detected on Solve';
+        D.aInput.value = '';
+        D.bInput.value = '';
+      }
+    });
+  });
+
+  /* Decimal precision: re-render any existing results immediately,
+     so the change is felt right away rather than only on next Solve */
+  D.precisionIn.addEventListener('input', () => {
+    let v = parseInt(D.precisionIn.value, 10);
+    if (isNaN(v)) return;
+    v = Math.min(8, Math.max(1, v));
+    _precision = v;
+    if (_steps.length) {
+      renderSolBox();
+      renderTable();
+      renderGraph(_idx);
+    }
+  });
+  D.precisionIn.addEventListener('blur', () => { D.precisionIn.value = _precision; });
+
   $('bisection-form').addEventListener('submit', solve);
   $('reset-btn').addEventListener('click', reset);
 
@@ -1282,6 +1417,9 @@ tr.conv td{color:#7FA68C}
   $('load-example').addEventListener('click', () => {
     const ex = EXAMPLES[_exIdx++ % EXAMPLES.length];
     D.fxInput.value = ex.fx;
+    /* examples ship with a known-good bracket, so switch to manual mode */
+    $('bracket-mode-manual').checked = true;
+    $('bracket-mode-manual').dispatchEvent(new Event('change'));
     D.aInput.value  = ex.a;
     D.bInput.value  = ex.b;
     D.fxDot.className = 'validity-dot ok';
@@ -1301,28 +1439,6 @@ tr.conv td{color:#7FA68C}
       const t = fn(1);
       D.fxDot.className = isFinite(t) ? 'validity-dot ok' : 'validity-dot bad';
     }, 280);
-  });
-
-  /* Stop-mode radio toggle */
-  document.querySelectorAll('.stop-option input[type="radio"]').forEach(radio => {
-    radio.addEventListener('change', () => {
-      document.querySelectorAll('.stop-option').forEach(opt => {
-        opt.classList.remove('active-mode');
-        const sub = opt.querySelector('.sub-input');
-        if (sub) sub.disabled = true;
-      });
-      const opt = radio.closest('.stop-option');
-      opt.classList.add('active-mode');
-      const sub = opt.querySelector('.sub-input');
-      if (sub) { sub.disabled = false; sub.focus(); }
-    });
-  });
-  /* Initialise disabled state */
-  document.querySelectorAll('.stop-option').forEach(opt => {
-    const radio = opt.querySelector('input[type="radio"]');
-    const sub   = opt.querySelector('.sub-input');
-    if (radio?.checked) { opt.classList.add('active-mode'); if (sub) sub.disabled = false; }
-    else if (sub)       sub.disabled = true;
   });
 
   /* ================================================================
