@@ -23,7 +23,7 @@
 
 <br/>
 
-[![](https://img.shields.io/badge/▶%20%20Open%20the%20App-Live%20Demo-C9784B?style=for-the-badge)](https://mehedy.netlify.app)
+[![](https://img.shields.io/badge/▶%20%20Open%20the%20App-Live%20Demo-C9784B?style=for-the-badge)](https://mehedyk.github.io/Numerical-Analysis/)
 
 </div>
 
