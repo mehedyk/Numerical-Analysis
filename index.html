@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Numerical Analysis Workbench — Bisection Method</title>
 <meta name="description" content="An interactive numerical analysis workbench. Solve root-finding problems with the bisection method, step by step, with animated visuals and exportable solutions." />
+<!-- Security headers -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; frame-src 'none'; object-src 'none';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="Referrer-Policy" content="no-referrer">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -206,15 +210,74 @@
 
   @media (prefers-reduced-motion: reduce){ *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; } }
   @media (max-width: 900px){ .hero{ grid-template-columns:1fr; } }
+
+  /* ---- tablet / small desktop ---- */
   @media (max-width: 760px){
     .shell{ flex-direction:column; }
     .sheet-index{ display:none; }
-    .mobile-nav{ display:flex; gap:8px; overflow-x:auto; position:sticky; top:0; z-index:20; background: var(--bg-deep); padding:12px 16px; border-bottom:1px solid var(--line-soft); }
-    .mobile-nav button{ flex:none; font-family: var(--font-mono); font-size:.76rem; padding:7px 12px; border-radius: 20px; border:1px solid var(--line); background: var(--panel); color: var(--ink-dim); }
+    .mobile-nav{ display:flex; gap:8px; overflow-x:auto; position:sticky; top:0; z-index:20; background: var(--bg-deep); padding:10px 14px; border-bottom:1px solid var(--line-soft); -webkit-overflow-scrolling:touch; }
+    .mobile-nav button{ flex:none; font-family: var(--font-mono); font-size:.76rem; padding:8px 14px; border-radius: 20px; border:1px solid var(--line); background: var(--panel); color: var(--ink-dim); min-height:40px; touch-action:manipulation; }
     .mobile-nav button.active{ background: var(--copper); color: var(--bg-deep); border-color: var(--copper); font-weight:600; }
-    main.workbench{ padding: 24px 16px 50px; }
+    main.workbench{ padding: 22px 14px 50px; }
     .field-row{ flex-direction:column; }
-    .stop-option .sub-input{ width:90px; }
+    .panel-body{ padding: 16px 14px; }
+    .panel-head{ padding: 14px 16px; flex-wrap:wrap; }
+
+    /* WCAG 2.5.5 — 44 × 44 px minimum touch target */
+    .btn{ min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
+    .btn-icon{ width:44px; height:44px; }
+
+    /* Solve/Reset row — primary full-width, ghost stays compact */
+    .btn-row{ flex-wrap:wrap; }
+    .btn-row .btn--primary{ width:100%; }
+
+    /* Stop-criterion options — sub-input drops below label */
+    .stop-option{ flex-wrap:wrap; }
+    .stop-option .sub-input{ width:100%; max-width:180px; margin-left:0; margin-top:6px; order:10; }
+
+    /* IVT sign-check rows — vertical stack so nothing overflows */
+    .bc-row{ flex-direction:column; align-items:flex-start; gap:4px; }
+
+    /* Viz controls — play buttons cluster left, step count wraps below */
+    .viz-controls{ flex-wrap:wrap; gap:8px; }
+    .step-indicator{ margin-left:0; width:100%; text-align:center; order:10; margin-top:2px; }
+    .speed-select{ margin-left:auto; }
+
+    /* Readings — 2-column grid instead of a long horizontal row */
+    .reading-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; }
+    #read-converged-wrap{ grid-column:1/-1; }
+
+    /* Export buttons — full-width stacked (most important on mobile!) */
+    .export-row{ flex-direction:column; align-items:stretch; }
+    .export-row > .btn{ width:100%; justify-content:center; }
+
+    /* Solution equation — allow break on narrow screens */
+    .sol-eq{ word-break:break-all; font-size:.95rem; }
+
+    /* Result chip row — wrap gracefully */
+    .result-row{ flex-direction:column; align-items:flex-start; gap:8px; }
+  }
+
+  /* ---- small phones (≤ 480 px) ---- */
+  @media (max-width: 480px){
+    main.workbench{ padding:14px 10px 40px; }
+    .hero{ padding-bottom:14px; margin-bottom:14px; }
+    .hero h1{ font-size:1.4rem; }
+    .hero-meta{ flex-direction:column; gap:5px; }
+    .hero-plate{ display:none; }           /* saves ~180px height on a small phone */
+    .hero-sub{ margin-top:8px; }
+    .field-hint{ font-size:.74rem; }
+    .reading-row .reading span{ font-size:.9rem; }
+    .root-chip{ font-size:1.05rem; }
+    .panel-body{ padding:12px 10px; }
+    .syntax-table{ font-size:.78rem; }
+    .syntax-table th, .syntax-table td{ padding:5px 7px; }
+    .sol-eq{ font-size:.85rem; padding:8px 12px; }
+    /* Table on tiny screens — slightly smaller mono text */
+    table.iter-table{ font-size:.76rem; }
+    table.iter-table th, table.iter-table td{ padding:6px 7px; }
+    /* Export note hint below buttons */
+    .export-note{ font-size:.72rem; margin-top:4px; }
   }
 </style>
 </head>
@@ -302,14 +365,15 @@
                     <tr><td>Multiplication</td><td><code>4*x</code> (or just <code>4x</code>)</td></tr>
                     <tr><td>Square root</td><td><code>sqrt(x)</code></td></tr>
                     <tr><td>Trig functions</td><td><code>sin(x)</code>, <code>cos(x)</code>, <code>tan(x)</code></td></tr>
+                    <tr><td>Implicit trig</td><td><code>x*tan(x)</code> or shorthand <code>xtan(x)</code></td></tr>
                     <tr><td>Exponential eˣ</td><td><code>exp(x)</code> or <code>e^x</code></td></tr>
-                    <tr><td>Natural log</td><td><code>log(x)</code> or <code>ln(x)</code></td></tr>
+                    <tr><td>Natural log</td><td><code>log(x)</code> or <code>ln(x)</code> or shorthand <code>logx</code></td></tr>
                     <tr><td>Base-10 log</td><td><code>log10(x)</code></td></tr>
                     <tr><td>Constants</td><td><code>pi</code>, <code>e</code> (Euler's number ≈ 2.71828)</td></tr>
                     <tr><td>Absolute value</td><td><code>abs(x)</code></td></tr>
                   </tbody>
                 </table>
-                <div class="note-box info">The bounds a and b also accept expressions: type <code>e</code>, <code>pi</code>, <code>2*pi</code>, <code>sqrt(2)</code>, etc. Both must be 0 or greater — negative bounds aren't supported.</div>
+                <div class="note-box info">The bounds a and b also accept expressions: type <code>e</code>, <code>pi</code>, <code>2*pi</code>, <code>sqrt(2)</code>, etc. Negative values like <code>-2</code> are allowed — enter them freely in manual mode.</div>
                 <div class="note-box" style="margin-top:8px;">In this parser, <code>log(x)</code> is the <em>natural</em> log (same as <code>ln(x)</code>). Use <code>log10(x)</code> for base-10.</div>
               </div>
             </details>
@@ -487,10 +551,12 @@
   const EXAMPLES = [
     { fx: 'x^3 - x - 2',      a: '1',     b: '2',   note: 'Classic cubic — root ≈ 1.5214' },
     { fx: 'x^3 - 4*x - 9',    a: '2',     b: '3',   note: 'Cubic — root ≈ 2.7065' },
+    { fx: '3x^3 - 7x + 5',    a: '-2',    b: '-1',  note: 'Cubic with negative bracket — root ≈ −1.834' },
     { fx: 'cos(x) - x',       a: '0',     b: '1',   note: 'Transcendental — root ≈ 0.7391' },
     { fx: 'exp(x) - 3*x',     a: '0',     b: '1',   note: 'Exponential — root ≈ 0.6190' },
     { fx: 'x^2 - 2',          a: '1',     b: '2',   note: '√2 — root ≈ 1.4142' },
     { fx: 'sin(x) - x/2',     a: '1',     b: '2',   note: 'Trig — root ≈ 1.8955' },
+    { fx: 'x*tan(x) - 1',     a: '0',     b: '1',   note: 'x·tan(x) — root ≈ 0.8603' },
     { fx: 'log(x) - cos(x)',  a: '1',     b: '2',   note: 'Log vs cosine — root ≈ 1.3026' },
     { fx: 'e^x - x^2 - 2',   a: '0',     b: '1',   note: 'Uses e constant — root ≈ 0.4428' },
   ];
@@ -541,17 +607,43 @@
   /* Parse a bound that may contain e, pi, sqrt(2), etc. */
   function parseVal(s) {
     if (!s || !s.trim()) return NaN;
+    if (s.length > 200) return NaN;           // guard against oversized bound expressions
     try {
       const v = math.evaluate(s.trim());
       return (typeof v === 'number' && isFinite(v)) ? v : NaN;
     } catch { return NaN; }
   }
 
+  /* Pre-process a raw expression string to handle common shorthand notations:
+     1. Function name applied to bare variable: logx → log(x), cosx → cos(x)
+     2. Implicit multiplication before a function call: xtan(x) → x*tan(x), 2sin(x) → 2*sin(x) */
+  function preprocessExpr(expr) {
+    // Ordered longest-first so alternation matches correctly (log10 before log, asin before sin, etc.)
+    const fnPat = 'asin|acos|atan|sinh|cosh|tanh|log10|log2|sin|cos|tan|log|ln|exp|sqrt|abs|ceil|floor|round';
+
+    // Step 1: bare-variable function shorthand — sinx → sin(x), logx → log(x)
+    // Matches: word-boundary + function name + single letter + word-boundary + NOT followed by '('
+    expr = expr.replace(
+      new RegExp('\\b(' + fnPat + ')\\s*([a-zA-Z])\\b(?!\\s*\\()', 'g'),
+      '$1($2)'
+    );
+
+    // Step 2: implicit multiply before a function call — xtan( → x*tan(, 2sin( → 2*sin(
+    // Matches: letter/digit immediately before a function name that is followed by '('
+    expr = expr.replace(
+      new RegExp('([a-zA-Z0-9])\\s*(' + fnPat + ')\\s*\\(', 'g'),
+      '$1*$2('
+    );
+
+    return expr;
+  }
+
   /* Compile f(x) expression into an evaluator */
   function compileFn(expr) {
     if (!expr || !expr.trim()) return null;
     try {
-      const node  = math.parse(expr.trim());
+      const processed = preprocessExpr(expr.trim());
+      const node  = math.parse(processed);
       const scope = {};
       const fn = x => {
         scope.x = x;
@@ -589,7 +681,16 @@
      ================================================================ */
   function findBracketAutoWhole(fn) {
     const N = 1000;
-    let prevX = 0, prevY = fn(0);
+    // Scan negative side first: -N → 0 (picks up roots like 3x³−7x+5 at ≈ −1.85)
+    let prevX = -N, prevY = fn(-N);
+    for (let x = -(N - 1); x <= 0; x++) {
+      const y = fn(x);
+      if (isFinite(prevY) && prevY === 0) return [prevX, prevX + 1];
+      if (isFinite(prevY) && isFinite(y) && prevY * y < 0) return [prevX, x];
+      prevX = x; prevY = y;
+    }
+    // Then positive side: 0 → N
+    prevX = 0; prevY = fn(0);
     for (let x = 1; x <= N; x++) {
       const y = fn(x);
       if (isFinite(prevY) && prevY === 0) return [prevX, prevX + 1];
@@ -601,9 +702,9 @@
 
   function findBracketAutoFine(fn) {
     const windows = [
-      { lo: 0, hi: 10,   n: 400 },
-      { lo: 0, hi: 100,  n: 500 },
-      { lo: 0, hi: 1000, n: 600 },
+      { lo: -10,   hi: 10,   n: 800  },
+      { lo: -100,  hi: 100,  n: 1000 },
+      { lo: -1000, hi: 1000, n: 1200 },
     ];
     for (const { lo, hi, n } of windows) {
       const step = (hi - lo) / n;
@@ -800,8 +901,8 @@
     if (!_steps.length || !_fn) return;
     const s = _steps[idx];
 
-    const W = 800, H = 420;
-    const pL = 72, pR = 24, pT = 30, pB = 46;
+    const W = 800, H = 456;
+    const pL = 72, pR = 24, pT = 30, pB = 82;  // pB increased → room for cut lane below ticks
     const pW = W - pL - pR, pH = H - pT - pB;
 
     /* X range: a bit wider than initial bracket */
@@ -887,6 +988,27 @@
       svg += `<line x1="${x0}" y1="${pT}" x2="${x0}" y2="${pT + pH}" stroke="#3D6694" stroke-width="1" opacity="0.35" stroke-dasharray="3 5"/>`;
     }
 
+    /* ── Historical midpoint cut lines (all steps before current) ──
+       Each past cut is a faint dashed vertical + a small dot on the
+       x-axis.  Opacity fades with age so newer cuts stand out more:
+         most-recent past cut ≈ 0.55 opacity
+         oldest cut           ≈ 0.12 opacity                          */
+    if (idx > 0) {
+      const span = Math.max(idx - 1, 1);
+      for (let i = 0; i < idx; i++) {
+        const pc  = _steps[i].c;
+        const pcX = tx(pc).toFixed(1);
+        const age = idx - 1 - i;                              // 0 = most recent past
+        const op  = (0.70 - 0.52 * age / span).toFixed(2);   // slightly more visible
+        /* vertical cut line */
+        svg += `<line x1="${pcX}" y1="${pT}" x2="${pcX}" y2="${pT + pH}" ` +
+               `stroke="#E2945F" stroke-width="1.3" stroke-dasharray="3 5" opacity="${op}"/>`;
+        /* dot on the x-axis to mark where each cut landed */
+        svg += `<circle cx="${pcX}" cy="${(pT + pH).toFixed(1)}" r="2.8" ` +
+               `fill="#E2945F" opacity="${op}"/>`;
+      }
+    }
+
     /* Current bracket lines */
     const aX = tx(s.a).toFixed(1), bX = tx(s.b).toFixed(1), cX = tx(s.c).toFixed(1);
     svg += `<line x1="${aX}" y1="${pT}" x2="${aX}" y2="${pT + pH}" stroke="#7FA68C" stroke-width="1.8" stroke-dasharray="6 3"/>`;
@@ -914,9 +1036,74 @@
     svg += plotPt(s.c, 'c', '#E2945F', 6.5);
 
     /* Step label overlay */
-    svg += `<rect x="${pL + 6}" y="${pT + 6}" width="280" height="20" rx="2" fill="rgba(8,23,41,.75)"/>`;
+    const cutInfo = idx > 0 ? `  ·  ${idx} cut${idx === 1 ? '' : 's'}` : '';
+    svg += `<rect x="${pL + 6}" y="${pT + 6}" width="320" height="20" rx="2" fill="rgba(8,23,41,.75)"/>`;
     svg += `<text x="${pL + 13}" y="${pT + 20}" font-size="11" fill="#AEC0D6" font-family="IBM Plex Mono,monospace">` +
-      `Step ${s.n}  ·  a=${fmt(s.a)}  b=${fmt(s.b)}  c=${fmt(s.c)}</text>`;
+      `Step ${s.n}  ·  a=${fmt(s.a)}  b=${fmt(s.b)}  c=${fmt(s.c)}${escHtml(cutInfo)}</text>`;
+
+    /* ── Cut history lane ─────────────────────────────────────────────
+       Compact strip below the x-axis tick labels.
+       Every past bisection cut is a fading vertical line.
+       The current active bracket [a,b] is highlighted.
+       The live midpoint c is the bold tick with a triangle pointer.
+       Together this makes the "halving" progression immediately visible.
+       ──────────────────────────────────────────────────────────────── */
+    const laneT   = pT + pH + 32;   // below tick labels (which sit at pT+pH+16)
+    const laneH   = 13;
+    const laneBot = laneT + laneH;
+
+    /* trough */
+    svg += `<rect x="${pL}" y="${laneT}" width="${pW}" height="${laneH}" rx="2" ` +
+           `fill="#0A1F36" stroke="rgba(61,102,148,.3)" stroke-width="0.8"/>`;
+
+    /* original [a₀,b₀] region — faint fill for context */
+    const initLX1 = Math.max(pL, Math.min(tx(_initA), pL + pW));
+    const initLX2 = Math.max(pL, Math.min(tx(_initB), pL + pW));
+    svg += `<rect x="${initLX1.toFixed(1)}" y="${laneT}" ` +
+           `width="${Math.max(0, initLX2 - initLX1).toFixed(1)}" height="${laneH}" ` +
+           `fill="rgba(61,102,148,.18)"/>`;
+
+    /* "cuts" label */
+    svg += `<text x="${pL - 5}" y="${(laneT + laneH - 2).toFixed(1)}" text-anchor="end" ` +
+           `font-size="9" fill="#7B93B0" font-family="IBM Plex Mono,monospace">cuts</text>`;
+
+    /* all historical cut lines (fade with age) */
+    if (idx > 0) {
+      const lSpan = Math.max(idx - 1, 1);
+      for (let i = 0; i < idx; i++) {
+        const pcX = tx(_steps[i].c);
+        if (pcX < pL || pcX > pL + pW) continue;
+        const age = idx - 1 - i;
+        const op  = (0.80 - 0.60 * age / lSpan).toFixed(2);
+        svg += `<line x1="${pcX.toFixed(1)}" y1="${(laneT - 1).toFixed(1)}" ` +
+               `x2="${pcX.toFixed(1)}" y2="${(laneBot + 1).toFixed(1)}" ` +
+               `stroke="#E2945F" stroke-width="1.2" opacity="${op}"/>`;
+      }
+    }
+
+    /* current bracket highlighted inside the lane */
+    const curLX1 = Math.max(pL, Math.min(tx(s.a), pL + pW));
+    const curLX2 = Math.max(pL, Math.min(tx(s.b), pL + pW));
+    svg += `<rect x="${curLX1.toFixed(1)}" y="${(laneT + 1.5).toFixed(1)}" ` +
+           `width="${Math.max(0, curLX2 - curLX1).toFixed(1)}" height="${(laneH - 3).toFixed(1)}" ` +
+           `rx="1" fill="rgba(201,120,75,.28)" stroke="#C9784B" stroke-width="1"/>`;
+
+    /* current midpoint c — bold tick + downward triangle pointer + label */
+    const curCLX = tx(s.c);
+    if (curCLX >= pL && curCLX <= pL + pW) {
+      svg += `<line x1="${curCLX.toFixed(1)}" y1="${(laneT - 4).toFixed(1)}" ` +
+             `x2="${curCLX.toFixed(1)}" y2="${(laneBot + 4).toFixed(1)}" ` +
+             `stroke="#E2945F" stroke-width="2.5"/>`;
+      /* small downward triangle under the lane */
+      const ptx = curCLX.toFixed(1);
+      svg += `<polygon points="${ptx},${(laneBot + 4).toFixed(1)} ` +
+             `${(curCLX - 4).toFixed(1)},${(laneBot + 9).toFixed(1)} ` +
+             `${(curCLX + 4).toFixed(1)},${(laneBot + 9).toFixed(1)}" ` +
+             `fill="#E2945F" opacity="0.9"/>`;
+      /* cN label */
+      svg += `<text x="${ptx}" y="${(laneBot + 21).toFixed(1)}" text-anchor="middle" ` +
+             `font-size="9" fill="#E2945F" font-family="IBM Plex Mono,monospace">c${s.n}</text>`;
+    }
 
     svg += '</svg>';
     D.bisGr.innerHTML = svg;
@@ -1015,6 +1202,14 @@
   /* ================================================================
      STATUS MESSAGES
      ================================================================ */
+  /* Escape user-supplied strings before inserting into innerHTML.
+     Covers both element content and attribute value contexts. */
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+  }
+
   function showStatus(msg, type = 'error') {
     D.statusMsg.textContent = msg;
     D.statusMsg.className   = `status-msg ${type}`;
@@ -1033,22 +1228,23 @@
     /* --- f(x) --- */
     const fxRaw = D.fxInput.value.trim();
     if (!fxRaw) return showStatus('Enter a function f(x) first.');
+    if (fxRaw.length > 500) return showStatus('Expression is too long — please keep it under 500 characters.');
     const fn = compileFn(fxRaw);
-    if (!fn) return showStatus(`Cannot parse "${fxRaw}". Check your syntax — expand the tutorial below.`);
+    if (!fn) return showStatus(`Cannot parse "${escHtml(fxRaw)}". Check your syntax — expand the tutorial below.`);
 
     /* --- bounds: auto-detected, or typed in manually --- */
-    const bracketMode = document.querySelector('[name="bracketMode"]:checked')?.value || 'auto';
+    const _bm = document.querySelector('[name="bracketMode"]:checked')?.value ?? '';
+    const bracketMode = (_bm === 'auto' || _bm === 'manual') ? _bm : 'auto';
     let a, b;
 
     if (bracketMode === 'manual') {
       const aRaw = D.aInput.value.trim(), bRaw = D.bInput.value.trim();
       if (!aRaw || !bRaw) return showStatus('Enter both bounds a and b (you can use e, pi, sqrt(2), etc.).');
+      if (aRaw.length > 200 || bRaw.length > 200) return showStatus('Bound expression is too long (max 200 characters).');
 
       a = parseVal(aRaw); b = parseVal(bRaw);
       if (isNaN(a)) return showStatus(`Cannot evaluate a = "${aRaw}". Use a number or an expression like e, pi, 2*pi.`);
       if (isNaN(b)) return showStatus(`Cannot evaluate b = "${bRaw}". Use a number or an expression like e, pi, 2*pi.`);
-      if (a < 0)    return showStatus(`Bound a must be 0 or greater — negative bounds aren't supported. Got a = ${fmt(a)}.`);
-      if (b < 0)    return showStatus(`Bound b must be 0 or greater — negative bounds aren't supported. Got b = ${fmt(b)}.`);
       if (a >= b)   return showStatus('Bound a must be strictly less than b.');
       D.bracketHint.hidden = true;
     } else {
@@ -1059,7 +1255,7 @@
         found = findBracketAutoFine(fn);
         usedFine = true;
       }
-      if (!found) return showStatus('Could not automatically find a sign change for this function within ±1000. Switch to "I\'ll set a and b myself" and enter a bracket directly.');
+      if (!found) return showStatus('Could not automatically find a sign change for this function within ±1000. Switch to "I\'ll set a and b myself" and enter a bracket directly — negative values like −2 are allowed.');
       [a, b] = found;
       D.aInput.value = fmt(a);
       D.bInput.value = fmt(b);
@@ -1083,7 +1279,8 @@
     _trueRoot = trRaw ? parseVal(trRaw) : null;
 
     /* --- stop mode --- */
-    const mode = document.querySelector('[name="stopMode"]:checked')?.value || 'auto';
+    const _sm  = document.querySelector('[name="stopMode"]:checked')?.value ?? '';
+    const mode = (['auto','iterations','tolerance'].includes(_sm)) ? _sm : 'auto';
     let param  = null;
     if (mode === 'iterations') {
       param = parseInt($('iter-count').value);
@@ -1172,44 +1369,186 @@
   }
 
   /* ================================================================
-     EXPORTS
+     EXPORTS — Mobile-first landscape capture
+     ----------------------------------------------------------------
+     On mobile the iteration table lives inside overflow-x:auto, so
+     capturing the live DOM clips it to viewport width and cuts off
+     columns.  Instead we build a dedicated off-screen 1120px panel,
+     populate it with all the data, capture THAT with explicit
+     width/windowWidth options, then remove it.
+     Result: always a full landscape PNG/PDF regardless of viewport.
      ================================================================ */
 
-  /* Helper: escape HTML in user-supplied strings */
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  /* Build a self-contained 1120px-wide export panel (off-screen) */
+  function buildExportEl() {
+    const fx      = escHtml(D.fxInput.value.trim());
+    const last    = _steps[_steps.length - 1];
+    const fa      = _fn(_initA), fb = _fn(_initB);
+    const hasTrue = (_trueRoot != null && isFinite(_trueRoot));
+    const date    = new Date().toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+
+    /* ---- table ---- */
+    const thS  = 'padding:6px 9px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#7B93B0;border-bottom:2px solid rgba(61,102,148,.5);white-space:nowrap;background:#0e2140';
+    const th1S = thS + ';text-align:left';
+    const cols = ['Step','a','b','f(a)','f(b)','c\u202f=\u202f(a+b)/2','f(c)','AE','RE'];
+    const thead = `<thead><tr>${cols.map((h,i)=>`<th style="${i===0?th1S:thS}">${h}</th>`).join('')}</tr></thead>`;
+
+    const tdB  = 'padding:5px 9px;border-bottom:1px solid rgba(61,102,148,.2);text-align:right;white-space:nowrap';
+    const td1B = tdB + ';text-align:left';
+    let rows = '';
+    for (const s of _steps) {
+      const rowBg = s.converged ? 'background:rgba(127,166,140,.1)' : '';
+      const cFa   = s.fa < 0 ? '#D9776B' : '#7FA68C';
+      const cFb   = s.fb < 0 ? '#D9776B' : '#7FA68C';
+      const cFc   = s.fc < 0 ? '#D9776B' : '#7FA68C';
+      const reStr = (s.re != null && !isNaN(s.re)) ? fmtE(s.re) : '\u2014';
+      rows += `<tr style="${rowBg}">
+        <td style="${td1B}">${s.n}</td>
+        <td style="${tdB}">${fmt(s.a)}</td>
+        <td style="${tdB}">${fmt(s.b)}</td>
+        <td style="${tdB};color:${cFa}">${fmt(s.fa)}</td>
+        <td style="${tdB};color:${cFb}">${fmt(s.fb)}</td>
+        <td style="${tdB};color:#E2945F;font-weight:600">${fmt(s.c)}</td>
+        <td style="${tdB};color:${cFc}">${fmt(s.fc)}</td>
+        <td style="${tdB}">${fmtE(s.ae)}</td>
+        <td style="${tdB}">${reStr}</td>
+      </tr>`;
+    }
+    const tblNote = hasTrue
+      ? `AE = |c \u2212 ${fmt(_trueRoot)}| (true root),  RE = AE / |true root|`
+      : `AE = (b \u2212 a) / 2  (guaranteed error bound),  RE = AE / |c|`;
+
+    const convNote = last.converged ? ` \u00b7 <span style="color:#7FA68C">\u2713 ${escHtml(last.reason)}</span>` : '';
+
+    /* ---- assembled HTML (all inline styles — no external CSS needed) ---- */
+    const inner = `
+      <div style="padding:28px 36px 20px;font-family:sans-serif;color:#EDEAE0;font-size:13px;line-height:1.5">
+
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(61,102,148,.45)">
+          <div>
+            <div style="font-size:10px;color:#7B93B0;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">Numerical Analysis Workbench \u00b7 Bisection Method</div>
+            <div style="font-size:20px;font-weight:700;color:#EDEAE0;font-family:monospace">f(x) = ${fx}</div>
+          </div>
+          <div style="font-size:11px;color:#7B93B0;text-align:right;flex-shrink:0;margin-left:24px;font-family:monospace">
+            ${escHtml(date)}<br>
+            <span style="color:#E2945F;font-size:17px;font-weight:700">Root \u2248 ${fmt(last.c)}</span><br>
+            ${_steps.length} iteration${_steps.length!==1?'s':''}${convNote}
+          </div>
+        </div>
+
+        <div style="background:#081729;border-radius:3px;padding:11px 16px;margin-bottom:14px;font-family:monospace;font-size:12px;display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+          <span style="color:#7B93B0;font-size:10px;text-transform:uppercase;letter-spacing:.08em">IVT Sign Check</span>
+          <span>f(a) = f(${fmt(_initA)}) = <span style="color:${fa<0?'#D9776B':'#7FA68C'}">${fmt(fa)}</span></span>
+          <span>f(b) = f(${fmt(_initB)}) = <span style="color:${fb<0?'#D9776B':'#7FA68C'}">${fmt(fb)}</span></span>
+          <span style="color:#7FA68C">\u2713 f(a)\u00b7f(b) &lt; 0 \u2014 IVT satisfied \u2192 root in [${fmt(_initA)}, ${fmt(_initB)}]</span>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;font-family:monospace;font-size:12px">
+          ${thead}<tbody>${rows}</tbody>
+        </table>
+        <div style="font-size:10px;color:#7B93B0;margin-top:7px;font-family:monospace">${escHtml(tblNote)}</div>
+
+        <div style="font-size:10px;color:#7B93B0;padding-top:10px;margin-top:10px;border-top:1px dashed rgba(61,102,148,.4);display:flex;justify-content:space-between;font-family:monospace">
+          <span>S.M. Mehedy Kawser \u00b7 mehedy.netlify.app</span>
+          <span>Generated ${escHtml(date)}</span>
+        </div>
+      </div>`;
+
+    /* Render at full opacity so html2canvas captures real content.
+       A full-screen overlay (added by the caller) covers it from the user.
+       z-index:99998 sits just below the overlay at 99999. */
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;top:0;left:0;width:1120px;background:#173A60;z-index:99998;overflow:visible;pointer-events:none';
+    wrap.innerHTML = inner;
+    document.body.appendChild(wrap);
+    return wrap;
+  }
+
+  /* Full-screen overlay shown during capture so the user never sees the
+     export element flash on screen. z-index:99999 sits above exportEl. */
+  function mkCaptureOverlay(label) {
+    const el = document.createElement('div');
+    el.style.cssText = [
+      'position:fixed','inset:0','z-index:99999',
+      'background:rgba(8,23,41,0.93)',
+      'display:flex','align-items:center','justify-content:center',
+      'flex-direction:column','gap:10px'
+    ].join(';');
+    el.innerHTML = `
+      <div style="font-family:monospace;font-size:13px;letter-spacing:2px;color:#C9784B">${label}</div>
+      <div style="font-family:monospace;font-size:11px;color:#7B93B0">Building landscape report\u2026</div>`;
+    document.body.appendChild(el);
+    return el;
+  }
+
+  /* Wait for two animation frames so the browser fully paints
+     the export element before html2canvas reads the pixels. */
+  function waitFrames() {
+    return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   }
 
   /* --- Download as PNG image --- */
   async function exportImage() {
     if (!_steps.length) return;
     const btn = D.expImg;
-    btn.textContent = 'Capturing…'; btn.disabled = true;
-    const credit = mkCredit();
+    btn.textContent = 'Capturing\u2026'; btn.disabled = true;
+    const overlay  = mkCaptureOverlay('Preparing Image\u2026');
+    const exportEl = buildExportEl();          // z-index:99998, opacity:1
+    await waitFrames();                        // let browser paint first
     try {
-      const canvas = await html2canvas($('capture-target'), { backgroundColor: '#173A60', scale: 2, logging: false });
+      const canvas = await html2canvas(exportEl, {
+        backgroundColor: '#173A60',
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        width: 1120,
+        height: exportEl.scrollHeight,
+        windowWidth: 1200,
+        scrollX: 0,
+        scrollY: 0
+      });
       dl(await canvasBlob(canvas), `bisection_${ts()}.png`);
     } catch (err) { alert('Image export failed: ' + err.message); }
-    finally { credit.remove(); btn.textContent = 'Download as image'; btn.disabled = false; }
+    finally {
+      exportEl.remove();
+      overlay.remove();
+      btn.textContent = 'Download as image';
+      btn.disabled = false;
+    }
   }
 
   /* --- Download as PDF --- */
   async function exportPDF() {
     if (!_steps.length) return;
     const btn = D.expPdf;
-    btn.textContent = 'Generating…'; btn.disabled = true;
-    const credit = mkCredit();
+    btn.textContent = 'Generating\u2026'; btn.disabled = true;
+    const overlay  = mkCaptureOverlay('Preparing PDF\u2026');
+    const exportEl = buildExportEl();
+    await waitFrames();
     try {
-      const canvas  = await html2canvas($('capture-target'), { backgroundColor: '#173A60', scale: 2, logging: false });
+      const canvas  = await html2canvas(exportEl, {
+        backgroundColor: '#173A60',
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        width: 1120,
+        height: exportEl.scrollHeight,
+        windowWidth: 1200,
+        scrollX: 0,
+        scrollY: 0
+      });
       const { jsPDF } = window.jspdf;
       const pdf     = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-      const pgW     = pdf.internal.pageSize.getWidth();
-      const pgH     = pdf.internal.pageSize.getHeight();
+      const pgW     = pdf.internal.pageSize.getWidth();   // 841.89 pt
+      const pgH     = pdf.internal.pageSize.getHeight();  // 595.28 pt
       const imgData = canvas.toDataURL('image/png');
       const imgH    = (canvas.height / canvas.width) * pgW;
       if (imgH <= pgH) {
         pdf.addImage(imgData, 'PNG', 0, 0, pgW, imgH);
       } else {
+        /* multi-page: slide the image down page by page */
         let yOff = 0;
         while (yOff < imgH) {
           if (yOff > 0) pdf.addPage();
@@ -1219,27 +1558,27 @@
       }
       pdf.save(`bisection_${ts()}.pdf`);
     } catch (err) { alert('PDF export failed: ' + err.message); }
-    finally { credit.remove(); btn.textContent = 'Download as PDF'; btn.disabled = false; }
+    finally {
+      exportEl.remove();
+      overlay.remove();
+      btn.textContent = 'Download as PDF';
+      btn.disabled = false;
+    }
   }
 
   /* --- export helpers --- */
   function ts() { return Date.now(); }
   function dl(blob, filename) {
+    /* Validate MIME type before triggering download */
+    if (!blob || !['image/png','application/pdf'].includes(blob.type)) return;
+    const safeName = filename.replace(/[^a-zA-Z0-9_.\-]/g, '_').slice(0, 80);
     const url = URL.createObjectURL(blob);
     const a   = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 6000);
+    a.href = url; a.download = safeName; a.rel = 'noopener noreferrer'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 8000);
   }
   function canvasBlob(canvas) {
     return new Promise(res => canvas.toBlob(res, 'image/png'));
-  }
-  function mkCredit() {
-    const el = document.createElement('div');
-    el.className = 'capture-credit';
-    el.innerHTML = `f(x) = ${escHtml(D.fxInput.value.trim())} · Bisection Method · ${new Date().toLocaleDateString()}` +
-      `<br>S.M. Mehedy Kawser · mehedy.netlify.app`;
-    $('capture-target').appendChild(el);
-    return el;
   }
 
   /* ================================================================
