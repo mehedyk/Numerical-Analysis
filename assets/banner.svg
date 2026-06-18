@@ -1,0 +1,152 @@
+<svg width="900" height="220" viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="rgba(61,102,148,0.22)" stroke-width="0.8"/>
+    </pattern>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#060f1a"/>
+      <stop offset="45%"  stop-color="#0F2240"/>
+      <stop offset="100%" stop-color="#060f1a"/>
+    </linearGradient>
+    <linearGradient id="fadeL" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#060f1a" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#060f1a" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fadeR" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#060f1a" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#060f1a" stop-opacity="1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="220" fill="url(#bg)"/>
+  <rect width="900" height="220" fill="url(#grid)"/>
+
+  <!-- ── X axis (zero line) ── -->
+  <line x1="60" y1="130" x2="840" y2="130" stroke="#3D6694" stroke-width="1" opacity="0.45"/>
+
+  <!-- ── Tick marks ── -->
+  <line x1="200" y1="126" x2="200" y2="134" stroke="#3D6694" stroke-width="1" opacity="0.4"/>
+  <line x1="420" y1="126" x2="420" y2="134" stroke="#3D6694" stroke-width="1" opacity="0.4"/>
+  <line x1="640" y1="126" x2="640" y2="134" stroke="#3D6694" stroke-width="1" opacity="0.4"/>
+
+  <!-- ── Function curve  f(x) = cos(x) − x  (stylised) ── -->
+  <path id="curve"
+        d="M 80 55 C 150 52, 240 88, 310 115 C 370 136, 420 142, 480 138
+           C 560 132, 640 118, 720 125 C 780 131, 820 138, 850 142"
+        fill="none" stroke="#7FA68C" stroke-width="2.4"
+        stroke-dasharray="1100" stroke-dashoffset="1100" opacity="0.9">
+    <animate attributeName="stroke-dashoffset"
+             from="1100" to="0"
+             dur="2.2s" begin="0.4s"
+             fill="freeze" calcMode="spline"
+             keySplines="0.4 0 0.2 1"/>
+  </path>
+
+  <!-- ── Root crossing marker (where curve crosses zero) ── -->
+  <!-- actual crossing ~x=320, y=130 -->
+  <circle cx="320" cy="130" r="0" fill="none" stroke="#7FA68C" stroke-width="2" opacity="0">
+    <animate attributeName="r"    from="0"  to="10"  dur="0.5s" begin="4.9s" fill="freeze"/>
+    <animate attributeName="opacity" values="0;1;1;0.6" keyTimes="0;0.1;0.8;1"
+             dur="4s" begin="4.9s" fill="freeze"/>
+  </circle>
+  <circle cx="320" cy="130" r="4" fill="#7FA68C" opacity="0">
+    <animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="5.1s" fill="freeze"/>
+  </circle>
+
+  <!-- ── Bracket 1:  a₀ = 200 ── -->
+  <line x1="200" y1="110" x2="200" y2="150" stroke="#C9784B" stroke-width="2.2" opacity="0">
+    <animate attributeName="opacity" from="0" to="0.85" dur="0.35s" begin="2.9s" fill="freeze"/>
+  </line>
+  <text x="200" y="168" text-anchor="middle" font-family="monospace" font-size="11" fill="#C9784B" opacity="0">
+    a₀
+    <animate attributeName="opacity" from="0" to="0.85" dur="0.3s" begin="3.0s" fill="freeze"/>
+  </text>
+
+  <!-- ── Bracket 1:  b₀ = 640 ── -->
+  <line x1="640" y1="110" x2="640" y2="150" stroke="#C9784B" stroke-width="2.2" opacity="0">
+    <animate attributeName="opacity" from="0" to="0.85" dur="0.35s" begin="2.9s" fill="freeze"/>
+  </line>
+  <text x="640" y="168" text-anchor="middle" font-family="monospace" font-size="11" fill="#C9784B" opacity="0">
+    b₀
+    <animate attributeName="opacity" from="0" to="0.85" dur="0.3s" begin="3.0s" fill="freeze"/>
+  </text>
+
+  <!-- ── Top span line [a₀, b₀] ── -->
+  <line x1="200" y1="110" x2="640" y2="110" stroke="#C9784B" stroke-width="1.2"
+        stroke-dasharray="6,4" opacity="0">
+    <animate attributeName="opacity" from="0" to="0.4" dur="0.3s" begin="3.1s" fill="freeze"/>
+  </line>
+
+  <!-- ── Midpoint c₁ = 420 ── -->
+  <circle cx="420" cy="130" r="0" fill="#E2945F" filter="url(#glow)" opacity="0">
+    <animate attributeName="r"    from="0"  to="5.5" dur="0.35s" begin="3.6s" fill="freeze"/>
+    <animate attributeName="opacity" from="0" to="1"   dur="0.3s"  begin="3.6s" fill="freeze"/>
+  </circle>
+  <text x="420" y="168" text-anchor="middle" font-family="monospace" font-size="11" fill="#E2945F" opacity="0">
+    c₁
+    <animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="3.7s" fill="freeze"/>
+  </text>
+
+  <!-- ── New bracket:  b₁ = c₁ = 420 (old b₀ fades, c₁ line appears) ── -->
+  <line x1="640" y1="110" x2="640" y2="150" stroke="#3D6694" stroke-width="1.5" opacity="0">
+    <animate attributeName="opacity" from="0" to="0.35" dur="0.4s" begin="4.0s" fill="freeze"/>
+  </line>
+
+  <line x1="200" y1="110" x2="420" y2="110" stroke="#C9784B" stroke-width="1.4"
+        stroke-dasharray="6,4" opacity="0">
+    <animate attributeName="opacity" from="0" to="0.55" dur="0.3s" begin="4.1s" fill="freeze"/>
+  </line>
+
+  <!-- ── Midpoint c₂ = 310 ── -->
+  <circle cx="310" cy="130" r="0" fill="#E2945F" opacity="0">
+    <animate attributeName="r"    from="0"  to="4.5" dur="0.3s"  begin="4.5s" fill="freeze"/>
+    <animate attributeName="opacity" from="0" to="0.9" dur="0.3s"  begin="4.5s" fill="freeze"/>
+  </circle>
+  <text x="310" y="168" text-anchor="middle" font-family="monospace" font-size="11" fill="#E2945F" opacity="0">
+    c₂
+    <animate attributeName="opacity" from="0" to="0.9" dur="0.3s" begin="4.6s" fill="freeze"/>
+  </text>
+
+  <!-- ── "Root ≈ 0.7391" label ── -->
+  <text x="320" y="195" text-anchor="middle" font-family="monospace" font-size="10.5"
+        fill="#7FA68C" letter-spacing="1" opacity="0">
+    root ≈ 0.7391
+    <animate attributeName="opacity" from="0" to="1" dur="0.6s" begin="5.3s" fill="freeze"/>
+  </text>
+
+  <!-- ── Edge fade-out overlays ── -->
+  <rect x="0"   y="0" width="110" height="220" fill="url(#fadeL)"/>
+  <rect x="790" y="0" width="110" height="220" fill="url(#fadeR)"/>
+
+  <!-- ══════════════════════ TEXT ══════════════════════ -->
+
+  <!-- NUMERICAL ANALYSIS -->
+  <text x="450" y="68" text-anchor="middle"
+        font-family="'Courier New', monospace" font-size="31" font-weight="700"
+        fill="#EDEAE0" letter-spacing="4" opacity="0">
+    NUMERICAL ANALYSIS
+    <animate attributeName="opacity" from="0" to="1" dur="0.9s" begin="0.1s" fill="freeze"/>
+  </text>
+
+  <!-- WORKBENCH subtitle -->
+  <text x="450" y="97" text-anchor="middle"
+        font-family="'Courier New', monospace" font-size="13" font-weight="400"
+        fill="#C9784B" letter-spacing="10" opacity="0">
+    WORKBENCH
+    <animate attributeName="opacity" from="0" to="1" dur="0.9s" begin="0.5s" fill="freeze"/>
+  </text>
+
+  <!-- tagline -->
+  <text x="450" y="210" text-anchor="middle"
+        font-family="'Courier New', monospace" font-size="9.5"
+        fill="#7B93B0" letter-spacing="2.5" opacity="0">
+    BISECTION  METHOD  ·  ROOT  FINDING  ·  STEP  BY  STEP  ·  EXPORTABLE
+    <animate attributeName="opacity" from="0" to="0.8" dur="1s" begin="1.0s" fill="freeze"/>
+  </text>
+
+</svg>
