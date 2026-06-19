@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Academic Integrity &amp; Usage Policy — Bisection Method Workbench</title>
+<style>
+  :root{
+    --bg-deep:#081729; --bg-mid:#0e2140; --panel:#132a4a;
+    --line-soft:rgba(61,102,148,.35);
+    --ink:#c8ddf0; --ink-dim:#7fa6c8; --ink-faint:#4a6a88;
+    --accent:#3d6694; --accent-hi:#5b8ec4;
+    --warn:#c4813a; --danger:#c45a5a; --ok:#5a9e7a;
+    --radius:10px;
+    --font-sans:'Inter','Segoe UI',system-ui,sans-serif;
+    --font-mono:'IBM Plex Mono','Fira Code','Courier New',monospace;
+  }
+  *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+  html{ font-size:16px; scroll-behavior:smooth; }
+  body{
+    background:var(--bg-deep); color:var(--ink);
+    font-family:var(--font-sans); line-height:1.7;
+    min-height:100vh; padding:0 0 60px;
+  }
+
+  /* ── Header ── */
+  .page-head{
+    background:var(--bg-mid); border-bottom:1px solid var(--line-soft);
+    padding:28px 32px 24px;
+  }
+  .page-head .breadcrumb{
+    font-size:.78rem; color:var(--ink-faint);
+    font-family:var(--font-mono); letter-spacing:.06em;
+    margin-bottom:10px;
+  }
+  .page-head .breadcrumb a{ color:var(--ink-dim); text-decoration:none; }
+  .page-head .breadcrumb a:hover{ color:var(--ink); }
+  .page-head h1{
+    font-size:1.45rem; font-weight:700; color:var(--ink);
+    letter-spacing:-.015em; margin-bottom:6px;
+  }
+  .page-head .subtitle{ font-size:.88rem; color:var(--ink-dim); }
+
+  /* ── Shell ── */
+  .shell{ max-width:780px; margin:0 auto; padding:40px 24px 0; }
+
+  /* ── Alert box ── */
+  .alert{
+    border-radius:var(--radius); padding:18px 22px;
+    margin-bottom:28px; border-left:4px solid;
+    font-size:.92rem; line-height:1.65;
+  }
+  .alert-warn{ background:rgba(196,129,58,.1); border-color:var(--warn); }
+  .alert-danger{ background:rgba(196,90,90,.1); border-color:var(--danger); }
+  .alert-ok{ background:rgba(90,158,122,.1); border-color:var(--ok); }
+  .alert strong{ display:block; font-size:.8rem; letter-spacing:.08em;
+    text-transform:uppercase; margin-bottom:6px; }
+  .alert-warn strong{ color:var(--warn); }
+  .alert-danger strong{ color:var(--danger); }
+  .alert-ok strong{ color:var(--ok); }
+
+  /* ── Section ── */
+  .sec{
+    background:var(--panel); border:1px solid var(--line-soft);
+    border-radius:var(--radius); margin-bottom:22px; overflow:hidden;
+  }
+  .sec-head{
+    padding:16px 22px; border-bottom:1px solid var(--line-soft);
+    display:flex; align-items:center; gap:12px;
+  }
+  .sec-icon{ font-size:1.15rem; line-height:1; }
+  .sec-head h2{ font-size:1rem; font-weight:700; color:var(--ink); }
+  .sec-body{ padding:20px 22px; font-size:.91rem; color:var(--ink-dim); }
+  .sec-body p{ margin-bottom:12px; }
+  .sec-body p:last-child{ margin-bottom:0; }
+  .sec-body ul{ padding-left:1.3em; margin-bottom:12px; }
+  .sec-body ul li{ margin-bottom:7px; }
+  .sec-body ul li:last-child{ margin-bottom:0; }
+  .sec-body strong{ color:var(--ink); }
+
+  /* ── Divider ── */
+  hr{ border:none; border-top:1px solid var(--line-soft); margin:30px 0; }
+
+  /* ── Footer ── */
+  .doc-foot{
+    margin-top:40px; padding-top:20px;
+    border-top:1px solid var(--line-soft);
+    display:flex; justify-content:space-between; flex-wrap:wrap;
+    gap:10px; font-size:.8rem; color:var(--ink-faint);
+  }
+  .doc-foot a{ color:var(--ink-dim); text-decoration:none; font-weight:600; }
+  .doc-foot a:hover{ color:var(--ink); }
+
+  /* ── Responsive ── */
+  @media(max-width:520px){
+    .page-head{ padding:20px 18px 18px; }
+    .shell{ padding:24px 16px 0; }
+    .sec-body, .sec-head{ padding-left:16px; padding-right:16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="breadcrumb">
+    <a href="index.html">← Bisection Method Workbench</a>
+    &nbsp;/&nbsp; Academic Integrity &amp; Usage Policy
+  </div>
+  <h1>Academic Integrity &amp; Usage Policy</h1>
+  <div class="subtitle">Please read before using this tool in any academic context.</div>
+</div>
+
+<div class="shell">
+
+  <!-- ── Top warning ── -->
+  <div class="alert alert-warn" style="margin-top:28px;">
+    <strong>⚠ Important Notice</strong>
+    This tool is designed as a <em>learning aid</em> — to help you
+    visualise, verify, and understand the bisection method step by step.
+    It is <strong>not</strong> intended to be used in place of your own work
+    in graded assignments, quizzes, or examinations.
+  </div>
+
+  <!-- ── 1. What this tool is ── -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-icon">🎯</span>
+      <h2>What This Tool Is For</h2>
+    </div>
+    <div class="sec-body">
+      <p>
+        The Bisection Method Workbench is a free, open educational resource built to
+        help students of numerical analysis <strong>understand</strong> how the bisection
+        algorithm works — not to do their coursework for them.
+      </p>
+      <p>Legitimate uses include:</p>
+      <ul>
+        <li>Checking your own hand-calculated results <em>after</em> you have worked through a problem yourself.</li>
+        <li>Visualising convergence behaviour and understanding why the bracket narrows.</li>
+        <li>Exploring how different stopping criteria (tolerance vs. iteration count) affect accuracy.</li>
+        <li>Self-study and revision outside of assessed contexts.</li>
+        <li>Teaching demonstrations by an instructor.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── 2. Academic dishonesty ── -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-icon">🚫</span>
+      <h2>What Constitutes Academic Dishonesty</h2>
+    </div>
+    <div class="sec-body">
+      <p>
+        Using this tool to generate answers that you then submit as your own work —
+        without genuine understanding or independent effort — is a form of
+        <strong>academic dishonesty</strong>. This includes, but is not limited to:
+      </p>
+      <ul>
+        <li>Copying iteration tables produced by this tool directly into assignment submissions.</li>
+        <li>Using the auto-detected bracket or computed root during a closed-book test or exam.</li>
+        <li>Submitting screenshots or exports from this tool as evidence of your own working.</li>
+        <li>Sharing tool outputs with other students to help them avoid doing the work themselves.</li>
+      </ul>
+      <p>
+        Whether an act constitutes cheating is determined by your institution's academic
+        integrity policy, not by this tool or its creators. When in doubt, ask your instructor.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 3. No liability ── -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-icon">⚖️</span>
+      <h2>Limitation of Liability</h2>
+    </div>
+    <div class="sec-body">
+      <p>
+        This tool is provided <strong>"as is"</strong>, free of charge, for educational purposes only.
+        The creator(s) of this workbench accept no responsibility or liability for:
+      </p>
+      <ul>
+        <li>
+          Any academic penalty, disciplinary action, or consequence arising from a
+          user's choice to misuse this tool in an assessed context.
+        </li>
+        <li>
+          Numerical results that differ from a student's expected answer due to
+          differences in rounding conventions, function interpretation (e.g. natural
+          log vs. base-10 log, radians vs. degrees), or floating-point precision.
+        </li>
+        <li>
+          Any loss, damage, or inconvenience caused by reliance on this tool's output
+          without independent verification.
+        </li>
+      </ul>
+      <p>
+        <strong>The responsibility for how this tool is used rests entirely with the user.</strong>
+        If you are uncertain whether using a computational aid is permitted in your
+        course or institution, consult your instructor or academic integrity office before proceeding.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 4. A note to instructors ── -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-icon">👩‍🏫</span>
+      <h2>A Note to Instructors</h2>
+    </div>
+    <div class="sec-body">
+      <p>
+        If you are an instructor and have concerns about students misusing this tool,
+        we recommend designing assessments that require students to demonstrate
+        understanding of the <em>process</em> rather than just the final answer —
+        for example, asking students to explain their bracket choice, interpret
+        convergence graphs, or analyse error behaviour.
+      </p>
+      <p>
+        This tool intentionally shows every intermediate step so that a student who
+        simply copies output without understanding it is likely to struggle when asked
+        to explain or extend their work in class or in an oral assessment.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 5. Good faith note ── -->
+  <div class="alert alert-ok">
+    <strong>✔ Our Good-Faith Commitment</strong>
+    This tool was built in good faith to support genuine learning. No data you enter
+    is stored, sent to any server, or tracked in any way — everything runs entirely
+    in your browser. We believe most users will use it honestly, and we trust you to
+    make the right choice.
+  </div>
+
+  <hr/>
+
+  <div class="doc-foot">
+    <span>Bisection Method Workbench &mdash; Academic Integrity &amp; Usage Policy</span>
+    <span>
+      <a href="index.html">← Back to the tool</a>
+    </span>
+  </div>
+
+</div><!-- .shell -->
+</body>
+</html>
