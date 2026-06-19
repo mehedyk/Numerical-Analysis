@@ -557,7 +557,7 @@
     { fx: 'x^2 - 2',          a: '1',     b: '2',   note: '√2 — root ≈ 1.4142' },
     { fx: 'sin(x) - x/2',     a: '1',     b: '2',   note: 'Trig — root ≈ 1.8955' },
     { fx: 'x*tan(x) - 1',     a: '0',     b: '1',   note: 'x·tan(x) — root ≈ 0.8603' },
-    { fx: 'log(x) - cos(x)',  a: '1',     b: '2',   note: 'Log vs cosine — root ≈ 1.3026' },
+    { fx: 'log(x) - cos(x)',  a: '1',     b: '2',   note: 'Log vs cosine — root ≈ 1.3029' },
     { fx: 'e^x - x^2 - 2',   a: '0',     b: '1',   note: 'Uses e constant — root ≈ 0.4428' },
   ];
 
@@ -681,21 +681,22 @@
      ================================================================ */
   function findBracketAutoWhole(fn) {
     const N = 1000;
-    // Scan negative side first: -N → 0 (picks up roots like 3x³−7x+5 at ≈ −1.85)
-    let prevX = -N, prevY = fn(-N);
-    for (let x = -(N - 1); x <= 0; x++) {
-      const y = fn(x);
-      if (isFinite(prevY) && prevY === 0) return [prevX, prevX + 1];
-      if (isFinite(prevY) && isFinite(y) && prevY * y < 0) return [prevX, x];
-      prevX = x; prevY = y;
-    }
-    // Then positive side: 0 → N
-    prevX = 0; prevY = fn(0);
-    for (let x = 1; x <= N; x++) {
-      const y = fn(x);
-      if (isFinite(prevY) && prevY === 0) return [prevX, prevX + 1];
-      if (isFinite(prevY) && isFinite(y) && prevY * y < 0) return [prevX, x];
-      prevX = x; prevY = y;
+    /* Scan OUTWARD from the origin: check positive [i, i+1] then negative
+       [-(i+1), -i] at each radius i = 0, 1, 2, …
+       This guarantees the smallest-magnitude bracket is returned first.
+       The old negative-first scan (−1000 → 0) caused oscillatory functions
+       such as x·tan(x)−1 to match a spurious sign change near x = −1000
+       (because tan oscillates wildly at large integer arguments) instead of
+       the intended root bracket [0, 1]. */
+    for (let i = 0; i < N; i++) {
+      // Positive interval [i, i+1]
+      const yL = fn(i), yR = fn(i + 1);
+      if (isFinite(yL) && yL === 0) return [i, i + 1];
+      if (isFinite(yL) && isFinite(yR) && yL * yR < 0) return [i, i + 1];
+      // Negative interval [-(i+1), -i]
+      const yNL = fn(-(i + 1)), yNR = fn(-i);
+      if (isFinite(yNR) && yNR === 0) return [-(i + 1), -i];
+      if (isFinite(yNL) && isFinite(yNR) && yNL * yNR < 0) return [-(i + 1), -i];
     }
     return null;
   }
@@ -760,8 +761,19 @@
         step.converged = true; step.reason = `AE ≤ ${tol}`; break;
       }
 
-      /* Narrow the bracket */
-      if (fa * fc < 0) cB = c; else cA = c;
+      /* Narrow the bracket.
+         Guard against NaN fc: this happens when c lands exactly on a
+         function discontinuity/asymptote (e.g. tan at π/2).  In that case
+         fa * fc produces NaN, which is never < 0, so the original code
+         always took the `else` branch and corrupted the bracket.
+         ±Infinity fc is fine — fa * ±Infinity still carries the correct sign. */
+      if (isNaN(fc)) {
+        cA = c;          /* arbitrary half; next midpoint will differ */
+      } else if (fa * fc < 0) {
+        cB = c;
+      } else {
+        cA = c;
+      }
     }
 
     /* For "auto" mode mark the final step */
