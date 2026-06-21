@@ -396,7 +396,8 @@ This is a client-side math tool. No data is ever sent to any server. The followi
 ```
 numerical-analysis-workbench/
 │
-├── index.html                  ← The entire application (HTML + CSS + JS, one file)
+├── index.html
+├── concern.html                  ← The entire application (HTML + CSS + JS, one file)
 │
 └── assets/
     ├── banner.svg              ← Animated README banner
