@@ -400,7 +400,7 @@ numerical-analysis-workbench/
 ├── concern.html                  ← The entire application (HTML + CSS + JS, one file)
 │
 └── assets/
-    ├── banner.svg              ← Animated README banner
+    ├── banner.svg
     └── screenshots/
         ├── 01-desktop-full.png
         ├── 02-solution-ivt.png
