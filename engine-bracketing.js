@@ -51,8 +51,8 @@
     { fx: 'x^2 - 2',          a: '1',     b: '2',   note: '√2 — root ≈ 1.4142' },
     { fx: 'sin(x) - x/2',     a: '1',     b: '2',   note: 'Trig — root ≈ 1.8955' },
     { fx: 'x*tan(x) - 1',     a: '0',     b: '1',   note: 'x·tan(x) — root ≈ 0.8603' },
-    { fx: 'ln(x) - cos(x)',  a: '1',     b: '2',   note: 'Natural log vs cosine — root ≈ 1.3029' },
-    { fx: 'e^x - x^2 - 2',   a: '0',     b: '1',   note: 'Uses e constant — root ≈ 0.4428' },
+    { fx: 'ln(x) - cos(x)',   a: '1',     b: '2',   note: 'Natural log vs cosine — root ≈ 1.3029' },
+    { fx: 'e^x - x^2 - 2',    a: '0',     b: '1',   note: 'Uses e constant — root ≈ 0.4428' },
   ];
 
   /* ================================================================
@@ -101,42 +101,56 @@
 
   /* ================================================================
      AUTO BRACKET FINDERS
-     Two strategies, both restricted to a, b ≥ 0 — bounds never go
-     negative:
-     - Whole-number (default): scans consecutive integers for a sign
-       change, so a/b come out as clean numbers like 1, 2 — the way
-       textbook brackets usually look.
+     Three strategies:
+     - Whole-number (default): scans consecutive integers outward from
+       the origin for a sign change. preferNegative flag reverses the
+       check order so negative intervals are tested before positive ones
+       at each radius step.
      - Fine: scans progressively wider windows with finer steps,
        landing on a tighter (decimal) bracket close to the root.
      ================================================================ */
-  function findBracketAutoWhole(fn) {
+  function findBracketAutoWhole(fn, preferNegative) {
     const N = 1000;
-    /* Scan OUTWARD from the origin: check positive [i, i+1] then negative
-       [-(i+1), -i] at each radius i = 0, 1, 2, …
-       This guarantees the smallest-magnitude bracket is returned first.
-       The old negative-first scan (−1000 → 0) caused oscillatory functions
-       such as x·tan(x)−1 to match a spurious sign change near x = −1000
-       (because tan oscillates wildly at large integer arguments) instead of
-       the intended root bracket [0, 1]. */
+    /* Scan OUTWARD from the origin at each radius i = 0, 1, 2, …
+       By default positive [i, i+1] is checked before negative [-(i+1), -i].
+       When preferNegative is true the order is flipped so the scanner
+       returns the smallest-magnitude *negative* bracket first. */
     for (let i = 0; i < N; i++) {
-      // Positive interval [i, i+1]
-      const yL = fn(i), yR = fn(i + 1);
-      if (isFinite(yL) && yL === 0) return [i, i + 1];
-      if (isFinite(yL) && isFinite(yR) && yL * yR < 0) return [i, i + 1];
-      // Negative interval [-(i+1), -i]
-      const yNL = fn(-(i + 1)), yNR = fn(-i);
-      if (isFinite(yNR) && yNR === 0) return [-(i + 1), -i];
-      if (isFinite(yNL) && isFinite(yNR) && yNL * yNR < 0) return [-(i + 1), -i];
+      const checkPos = () => {
+        const yL = fn(i), yR = fn(i + 1);
+        if (isFinite(yL) && yL === 0) return [i, i + 1];
+        if (isFinite(yL) && isFinite(yR) && yL * yR < 0) return [i, i + 1];
+        return null;
+      };
+      const checkNeg = () => {
+        const yNL = fn(-(i + 1)), yNR = fn(-i);
+        if (isFinite(yNR) && yNR === 0) return [-(i + 1), -i];
+        if (isFinite(yNL) && isFinite(yNR) && yNL * yNR < 0) return [-(i + 1), -i];
+        return null;
+      };
+
+      const first  = preferNegative ? checkNeg : checkPos;
+      const second = preferNegative ? checkPos : checkNeg;
+      const r = first() || second();
+      if (r) return r;
     }
     return null;
   }
 
-  function findBracketAutoFine(fn) {
-    const windows = [
+  function findBracketAutoFine(fn, preferNegative) {
+    /* When preferNegative, try a negative-biased window first */
+    const windowsNeg = [
+      { lo: -10,   hi: 0,    n: 400  },
+      { lo: -100,  hi: 0,    n: 600  },
+      { lo: -1000, hi: 0,    n: 800  },
+    ];
+    const windowsStd = [
       { lo: -10,   hi: 10,   n: 800  },
       { lo: -100,  hi: 100,  n: 1000 },
       { lo: -1000, hi: 1000, n: 1200 },
     ];
+    const windows = preferNegative ? [...windowsNeg, ...windowsStd] : windowsStd;
+
     for (const { lo, hi, n } of windows) {
       const step = (hi - lo) / n;
       let prevX = lo, prevY = fn(lo);
@@ -158,12 +172,21 @@
      false-position secant-intercept formula. Everything else
      (convergence checks, AE/RE, bracket narrowing) is identical
      across every bracketing method.
+
+     stopMode values:
+       'c-repeat'   — NEW DEFAULT: stop when c hasn't changed (floating-
+                      point identical to previous c). Fast & intuitive.
+       'auto'       — legacy: runs until bracket width < 4*epsilon
+                      (machine precision). Can take 50+ iterations.
+       'iterations' — fixed step count
+       'tolerance'  — stop when AE ≤ tol
      ================================================================ */
   function runBracketingMethod(fn, a, b, mode, param, trueRoot, nextC) {
     const out  = [];
     let cA = a, cB = b;
     const maxN = (mode === 'iterations') ? Math.min(param, 200) : 200;
     const tol  = (mode === 'tolerance')  ? param : 0;
+    let prevC  = NaN;   // track previous c for c-repeat check
 
     for (let n = 1; n <= maxN; n++) {
       const fa = fn(cA), fb = fn(cB);
@@ -184,26 +207,40 @@
                      converged: false, reason: '' };
       out.push(step);
 
-      /* Convergence checks */
+      /* ── Convergence checks ── */
+
+      /* 1. f(c) = 0 exactly */
       if (Math.abs(fc) === 0) {
         step.converged = true; step.reason = 'f(c) = 0 exactly'; break;
       }
+
+      /* 2. c-repeat: c hasn't changed from the previous iteration.
+            This is the new default (mode === 'c-repeat').
+            The bracket has collapsed to floating-point resolution —
+            computing a new midpoint gives the same number. */
+      if (mode === 'c-repeat' && n > 1 && c === prevC) {
+        step.converged = true; step.reason = 'c repeated — bracket fully resolved'; break;
+      }
+
+      /* 3. Legacy machine-precision check (mode === 'auto') */
       const eps = Number.EPSILON * Math.max(1, Math.abs(cA), Math.abs(cB));
-      if (cB - cA < 4 * eps) {
+      if (mode === 'auto' && cB - cA < 4 * eps) {
         step.converged = true; step.reason = 'machine precision reached'; break;
       }
+
+      /* 4. Fixed iteration count — just let the loop run to maxN */
+
+      /* 5. Tolerance */
       if (mode === 'tolerance' && tol > 0 && ae <= tol) {
         step.converged = true; step.reason = `AE ≤ ${tol}`; break;
       }
 
+      prevC = c;  // remember this c for next iteration's repeat-check
+
       /* Narrow the bracket.
-         Guard against NaN fc: this happens when c lands exactly on a
-         function discontinuity/asymptote (e.g. tan at π/2).  In that case
-         fa * fc produces NaN, which is never < 0, so the original code
-         always took the `else` branch and corrupted the bracket.
-         ±Infinity fc is fine — fa * ±Infinity still carries the correct sign. */
+         Guard against NaN fc (discontinuity/asymptote hit). */
       if (isNaN(fc)) {
-        cA = c;          /* arbitrary half; next midpoint will differ */
+        cA = c;
       } else if (fa * fc < 0) {
         cB = c;
       } else {
@@ -211,10 +248,20 @@
       }
     }
 
-    /* For "auto" mode mark the final step */
+    /* For iteration-count mode, mark the final step as "reached limit" */
+    if (out.length && !out[out.length - 1].converged && mode === 'iterations') {
+      out[out.length - 1].converged = true;
+      out[out.length - 1].reason    = `${out.length} iterations reached`;
+    }
+    /* Legacy auto: mark final step if still not converged */
     if (out.length && !out[out.length - 1].converged && mode === 'auto') {
       out[out.length - 1].converged = true;
       out[out.length - 1].reason    = 'max precision reached';
+    }
+    /* c-repeat mode: if we exhausted maxN without repeat (unusual), note it */
+    if (out.length && !out[out.length - 1].converged && mode === 'c-repeat') {
+      out[out.length - 1].converged = true;
+      out[out.length - 1].reason    = 'max iterations reached';
     }
     return out;
   }
@@ -349,7 +396,7 @@
     const s = _steps[idx];
 
     const W = 800, H = 456;
-    const pL = 72, pR = 24, pT = 30, pB = 82;  // pB increased → room for cut lane below ticks
+    const pL = 72, pR = 24, pT = 30, pB = 82;
     const pW = W - pL - pR, pH = H - pT - pB;
 
     /* X range: a bit wider than initial bracket */
@@ -435,22 +482,16 @@
       svg += `<line x1="${x0}" y1="${pT}" x2="${x0}" y2="${pT + pH}" stroke="#3D6694" stroke-width="1" opacity="0.35" stroke-dasharray="3 5"/>`;
     }
 
-    /* ── Historical midpoint cut lines (all steps before current) ──
-       Each past cut is a faint dashed vertical + a small dot on the
-       x-axis.  Opacity fades with age so newer cuts stand out more:
-         most-recent past cut ≈ 0.55 opacity
-         oldest cut           ≈ 0.12 opacity                          */
+    /* Historical midpoint cut lines */
     if (idx > 0) {
       const span = Math.max(idx - 1, 1);
       for (let i = 0; i < idx; i++) {
         const pc  = _steps[i].c;
         const pcX = tx(pc).toFixed(1);
-        const age = idx - 1 - i;                              // 0 = most recent past
-        const op  = (0.70 - 0.52 * age / span).toFixed(2);   // slightly more visible
-        /* vertical cut line */
+        const age = idx - 1 - i;
+        const op  = (0.70 - 0.52 * age / span).toFixed(2);
         svg += `<line x1="${pcX}" y1="${pT}" x2="${pcX}" y2="${pT + pH}" ` +
                `stroke="#E2945F" stroke-width="1.3" stroke-dasharray="3 5" opacity="${op}"/>`;
-        /* dot on the x-axis to mark where each cut landed */
         svg += `<circle cx="${pcX}" cy="${(pT + pH).toFixed(1)}" r="2.8" ` +
                `fill="#E2945F" opacity="${op}"/>`;
       }
@@ -462,10 +503,10 @@
     svg += `<line x1="${bX}" y1="${pT}" x2="${bX}" y2="${pT + pH}" stroke="#7FA68C" stroke-width="1.8" stroke-dasharray="6 3"/>`;
     svg += `<line x1="${cX}" y1="${pT}" x2="${cX}" y2="${pT + pH}" stroke="#E2945F" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.8"/>`;
 
-    /* Function curve — drawn above bracket lines */
+    /* Function curve */
     svg += `<path d="${path}" fill="none" stroke="#7FA68C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
 
-    /* Points on curve + drop lines to axis */
+    /* Points on curve + drop lines */
     const plotPt = (xv, lbl, col, r) => {
       const yv = _fn(xv);
       if (!isFinite(yv)) return '';
@@ -488,33 +529,23 @@
     svg += `<text x="${pL + 13}" y="${pT + 20}" font-size="11" fill="#AEC0D6" font-family="IBM Plex Mono,monospace">` +
       `Step ${s.n}  ·  a=${fmt(s.a)}  b=${fmt(s.b)}  c=${fmt(s.c)}${escHtml(cutInfo)}</text>`;
 
-    /* ── Cut history lane ─────────────────────────────────────────────
-       Compact strip below the x-axis tick labels.
-       Every past bisection cut is a fading vertical line.
-       The current active bracket [a,b] is highlighted.
-       The live midpoint c is the bold tick with a triangle pointer.
-       Together this makes the "halving" progression immediately visible.
-       ──────────────────────────────────────────────────────────────── */
-    const laneT   = pT + pH + 32;   // below tick labels (which sit at pT+pH+16)
+    /* Cut history lane */
+    const laneT   = pT + pH + 32;
     const laneH   = 13;
     const laneBot = laneT + laneH;
 
-    /* trough */
     svg += `<rect x="${pL}" y="${laneT}" width="${pW}" height="${laneH}" rx="2" ` +
            `fill="#0A1F36" stroke="rgba(61,102,148,.3)" stroke-width="0.8"/>`;
 
-    /* original [a₀,b₀] region — faint fill for context */
     const initLX1 = Math.max(pL, Math.min(tx(_initA), pL + pW));
     const initLX2 = Math.max(pL, Math.min(tx(_initB), pL + pW));
     svg += `<rect x="${initLX1.toFixed(1)}" y="${laneT}" ` +
            `width="${Math.max(0, initLX2 - initLX1).toFixed(1)}" height="${laneH}" ` +
            `fill="rgba(61,102,148,.18)"/>`;
 
-    /* "cuts" label */
     svg += `<text x="${pL - 5}" y="${(laneT + laneH - 2).toFixed(1)}" text-anchor="end" ` +
            `font-size="9" fill="#7B93B0" font-family="IBM Plex Mono,monospace">cuts</text>`;
 
-    /* all historical cut lines (fade with age) */
     if (idx > 0) {
       const lSpan = Math.max(idx - 1, 1);
       for (let i = 0; i < idx; i++) {
@@ -528,26 +559,22 @@
       }
     }
 
-    /* current bracket highlighted inside the lane */
     const curLX1 = Math.max(pL, Math.min(tx(s.a), pL + pW));
     const curLX2 = Math.max(pL, Math.min(tx(s.b), pL + pW));
     svg += `<rect x="${curLX1.toFixed(1)}" y="${(laneT + 1.5).toFixed(1)}" ` +
            `width="${Math.max(0, curLX2 - curLX1).toFixed(1)}" height="${(laneH - 3).toFixed(1)}" ` +
            `rx="1" fill="rgba(201,120,75,.28)" stroke="#C9784B" stroke-width="1"/>`;
 
-    /* current midpoint c — bold tick + downward triangle pointer + label */
     const curCLX = tx(s.c);
     if (curCLX >= pL && curCLX <= pL + pW) {
       svg += `<line x1="${curCLX.toFixed(1)}" y1="${(laneT - 4).toFixed(1)}" ` +
              `x2="${curCLX.toFixed(1)}" y2="${(laneBot + 4).toFixed(1)}" ` +
              `stroke="#E2945F" stroke-width="2.5"/>`;
-      /* small downward triangle under the lane */
       const ptx = curCLX.toFixed(1);
       svg += `<polygon points="${ptx},${(laneBot + 4).toFixed(1)} ` +
              `${(curCLX - 4).toFixed(1)},${(laneBot + 9).toFixed(1)} ` +
              `${(curCLX + 4).toFixed(1)},${(laneBot + 9).toFixed(1)}" ` +
              `fill="#E2945F" opacity="0.9"/>`;
-      /* cN label */
       svg += `<text x="${ptx}" y="${(laneBot + 21).toFixed(1)}" text-anchor="middle" ` +
              `font-size="9" fill="#E2945F" font-family="IBM Plex Mono,monospace">c${s.n}</text>`;
     }
@@ -570,8 +597,6 @@
     D.prevBtn.disabled = (idx === 0);
     D.nextBtn.disabled = (idx >= _steps.length - 1);
 
-    /* Sync active table row (highlight only — no forced scrolling,
-       so the graph stays in view while the animation plays) */
     Array.from(D.tBody.querySelectorAll('tr')).forEach((r, i) => {
       r.classList.toggle('active-row', i === idx);
     });
@@ -579,9 +604,6 @@
 
   /* ================================================================
      HERO ANIMATION
-     Animates the active method on f(x)=x³−x−2 over [1,2]. Re-run
-     with a different nextC when the user switches methods, so the
-     little demo graphic actually reflects what's selected.
      ================================================================ */
   function initHero(nextC) {
     if (_heroTmr) { clearInterval(_heroTmr); _heroTmr = null; }
@@ -622,25 +644,18 @@
       const aX = tx(s.a).toFixed(1), bX = tx(s.b).toFixed(1), cX = tx(s.c).toFixed(1);
 
       let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-      /* Grid */
       for (let i = 0; i <= 5; i++) {
         svg += `<line x1="${(pL + i * pW / 5).toFixed(0)}" y1="${pT}" x2="${(pL + i * pW / 5).toFixed(0)}" y2="${pT + pH}" stroke="rgba(61,102,148,.2)" stroke-width="1"/>`;
         svg += `<line x1="${pL}" y1="${(pT + i * pH / 5).toFixed(0)}" x2="${pL + pW}" y2="${(pT + i * pH / 5).toFixed(0)}" stroke="rgba(61,102,148,.2)" stroke-width="1"/>`;
       }
-      /* Bracket shade */
       svg += `<rect x="${aX}" y="${pT}" width="${(tx(s.b) - tx(s.a)).toFixed(1)}" height="${pH}" fill="rgba(201,120,75,.1)"/>`;
-      /* X-axis */
       svg += `<line x1="${pL}" y1="${xAY}" x2="${pL + pW}" y2="${xAY}" stroke="#AEC0D6" stroke-width="1.5"/>`;
-      /* Bracket lines */
       svg += `<line x1="${aX}" y1="${pT}" x2="${aX}" y2="${pT + pH}" stroke="#7FA68C" stroke-width="1.5" stroke-dasharray="4 3"/>`;
       svg += `<line x1="${bX}" y1="${pT}" x2="${bX}" y2="${pT + pH}" stroke="#7FA68C" stroke-width="1.5" stroke-dasharray="4 3"/>`;
       svg += `<line x1="${cX}" y1="${pT}" x2="${cX}" y2="${pT + pH}" stroke="#E2945F" stroke-width="1.5" stroke-dasharray="3 3" opacity=".8"/>`;
-      /* Curve */
       svg += `<path d="${p}" fill="none" stroke="#7FA68C" stroke-width="2"/>`;
-      /* c dot */
       const cY = hFn(s.c);
       if (isFinite(cY)) svg += `<circle cx="${cX}" cy="${ty(cY).toFixed(1)}" r="5" fill="#E2945F" stroke="#081729" stroke-width="1.5"/>`;
-      /* Labels */
       [['a', aX, '#7FA68C'], ['b', bX, '#7FA68C'], ['c', cX, '#E2945F']].forEach(([l, x, col]) => {
         svg += `<text x="${x}" y="${H - 5}" text-anchor="middle" font-size="11" fill="${col}" font-family="IBM Plex Mono,monospace">${l}</text>`;
       });
@@ -684,11 +699,19 @@
       if (a >= b)   return showStatus('Bound a must be strictly less than b.');
       D.bracketHint.hidden = true;
     } else {
-      const wantFine = D.fineToggle.checked;
-      let found = wantFine ? findBracketAutoFine(fn) : findBracketAutoWhole(fn);
+      /* Read both auto-detect option toggles */
+      const wantFine    = D.fineToggle.checked;
+      const wantNegPref = $('bracket-neg-toggle').checked;
+
+      let found = wantFine
+        ? findBracketAutoFine(fn, wantNegPref)
+        : findBracketAutoWhole(fn, wantNegPref);
+
       let usedFine = wantFine;
-      if (!found && !wantFine) {              /* fall back automatically */
-        found = findBracketAutoFine(fn);
+
+      /* Fallback: if whole-number scan missed, try fine automatically */
+      if (!found && !wantFine) {
+        found = findBracketAutoFine(fn, wantNegPref);
         usedFine = true;
       }
       if (!found) return showStatus('Could not automatically find a sign change for this function within ±1000. Switch to "I\'ll set a and b myself" and enter a bracket directly — negative values like −2 are allowed.');
@@ -696,9 +719,10 @@
       D.aInput.value = fmt(a);
       D.bInput.value = fmt(b);
       D.bracketHint.hidden = false;
-      D.bracketHint.textContent = usedFine
-        ? `Auto-detected a tighter decimal bracket: a = ${fmt(a)}, b = ${fmt(b)}`
-        : `Auto-detected whole-number bracket: a = ${fmt(a)}, b = ${fmt(b)}`;
+      D.bracketHint.textContent =
+        (usedFine ? 'Auto-detected a tighter decimal bracket' : 'Auto-detected whole-number bracket') +
+        (wantNegPref ? ' (negative priority)' : '') +
+        `: a = ${fmt(a)}, b = ${fmt(b)}`;
     }
 
     /* --- sign check --- */
@@ -716,7 +740,7 @@
 
     /* --- stop mode --- */
     const _sm  = document.querySelector('[name="stopMode"]:checked')?.value ?? '';
-    const mode = (['auto','iterations','tolerance'].includes(_sm)) ? _sm : 'auto';
+    const mode = (['c-repeat','auto','iterations','tolerance'].includes(_sm)) ? _sm : 'c-repeat';
     let param  = null;
     if (mode === 'iterations') {
       param = parseInt($('iter-count').value);
@@ -804,21 +828,13 @@
     document.querySelectorAll('#bracket-mode-options .stop-option').forEach(opt => opt.classList.remove('active-mode'));
     $('bracket-mode-auto').closest('.stop-option').classList.add('active-mode');
     D.fineToggle.checked = false;
+    $('bracket-neg-toggle').checked = false;
     D.bracketHint.hidden = true;
   }
 
   /* ================================================================
-     EXPORTS — Mobile-first landscape capture
-     ----------------------------------------------------------------
-     On mobile the iteration table lives inside overflow-x:auto, so
-     capturing the live DOM clips it to viewport width and cuts off
-     columns.  Instead we build a dedicated off-screen 1120px panel,
-     populate it with all the data, capture THAT with explicit
-     width/windowWidth options, then remove it.
-     Result: always a full landscape PNG/PDF regardless of viewport.
+     EXPORTS
      ================================================================ */
-
-  /* Build a self-contained 1120px-wide export panel (off-screen) */
   function buildExportEl() {
     const fx      = escHtml(D.fxInput.value.trim());
     const last    = _steps[_steps.length - 1];
@@ -826,7 +842,6 @@
     const hasTrue = (_trueRoot != null && isFinite(_trueRoot));
     const date    = new Date().toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
 
-    /* ---- table ---- */
     const thS  = 'padding:6px 9px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#7B93B0;border-bottom:2px solid rgba(61,102,148,.5);white-space:nowrap;background:#0e2140';
     const th1S = thS + ';text-align:left';
     const cols = ['Step','a','b','f(a)','f(b)', METHODS[_activeMethod].cColHeader,'f(c)','AE','RE'];
@@ -859,7 +874,6 @@
 
     const convNote = last.converged ? ` \u00b7 <span style="color:#7FA68C">\u2713 ${escHtml(last.reason)}</span>` : '';
 
-    /* ---- assembled HTML (all inline styles — no external CSS needed) ---- */
     const inner = `
       <div style="padding:28px 36px 20px;font-family:sans-serif;color:#EDEAE0;font-size:13px;line-height:1.5">
 
@@ -893,9 +907,6 @@
         </div>
       </div>`;
 
-    /* Render at full opacity so html2canvas captures real content.
-       A full-screen overlay (added by the caller) covers it from the user.
-       z-index:99998 sits just below the overlay at 99999. */
     const wrap = document.createElement('div');
     wrap.style.cssText = 'position:fixed;top:0;left:0;width:1120px;background:#173A60;z-index:99998;overflow:visible;pointer-events:none';
     wrap.innerHTML = inner;
@@ -903,14 +914,13 @@
     return wrap;
   }
 
-  /* --- Download as PNG image --- */
   async function exportImage() {
     if (!_steps.length) return;
     const btn = D.expImg;
     btn.textContent = 'Capturing\u2026'; btn.disabled = true;
     const overlay  = mkCaptureOverlay('Preparing Image\u2026');
-    const exportEl = buildExportEl();          // z-index:99998, opacity:1
-    await waitFrames();                        // let browser paint first
+    const exportEl = buildExportEl();
+    await waitFrames();
     try {
       const canvas = await html2canvas(exportEl, {
         backgroundColor: '#173A60',
@@ -934,7 +944,6 @@
     }
   }
 
-  /* --- Download as PDF --- */
   async function exportPDF() {
     if (!_steps.length) return;
     const btn = D.expPdf;
@@ -957,14 +966,13 @@
       });
       const { jsPDF } = window.jspdf;
       const pdf     = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-      const pgW     = pdf.internal.pageSize.getWidth();   // 841.89 pt
-      const pgH     = pdf.internal.pageSize.getHeight();  // 595.28 pt
+      const pgW     = pdf.internal.pageSize.getWidth();
+      const pgH     = pdf.internal.pageSize.getHeight();
       const imgData = canvas.toDataURL('image/png');
       const imgH    = (canvas.height / canvas.width) * pgW;
       if (imgH <= pgH) {
         pdf.addImage(imgData, 'PNG', 0, 0, pgW, imgH);
       } else {
-        /* multi-page: slide the image down page by page */
         let yOff = 0;
         while (yOff < imgH) {
           if (yOff > 0) pdf.addPage();
@@ -982,12 +990,9 @@
     }
   }
 
-
-
   /* ================================================================
      EVENT LISTENERS
      ================================================================ */
-  /* Bracket-mode toggle: auto-detect a/b vs. let the user type them in */
   document.querySelectorAll('input[name="bracketMode"]').forEach(radio => {
     radio.addEventListener('change', () => {
       if (!radio.checked) return;
@@ -1007,8 +1012,6 @@
     });
   });
 
-  /* Decimal precision: re-render any existing results immediately,
-     so the change is felt right away rather than only on next Solve */
   D.precisionIn.addEventListener('input', () => {
     let v = parseInt(D.precisionIn.value, 10);
     if (isNaN(v)) return;
@@ -1029,17 +1032,15 @@
   D.nextBtn.addEventListener('click', () => goTo(_idx + 1));
   D.playBtn.addEventListener('click', togglePlay);
   D.speedSel.addEventListener('change', () => {
-    if (_playTmr) { togglePlay(); togglePlay(); } /* restart at new speed */
+    if (_playTmr) { togglePlay(); togglePlay(); }
   });
 
   D.expImg.addEventListener('click',  exportImage);
   D.expPdf.addEventListener('click',  exportPDF);
 
-  /* Load example */
   $('load-example').addEventListener('click', () => {
     const ex = EXAMPLES[_exIdx++ % EXAMPLES.length];
     D.fxInput.value = ex.fx;
-    /* examples ship with a known-good bracket, so switch to manual mode */
     $('bracket-mode-manual').checked = true;
     $('bracket-mode-manual').dispatchEvent(new Event('change'));
     D.aInput.value  = ex.a;
@@ -1065,12 +1066,6 @@
 
   /* ================================================================
      METHOD SWITCHING
-     Swaps every piece of method-specific copy/formula and fades the
-     hero block out/in so the change reads as a transition rather
-     than a jump. Inputs (f(x), a, b, stop mode, etc.) are left
-     untouched since every bracketing method takes the same inputs —
-     only any already-computed results are cleared, since they were
-     produced with the old method's formula.
      ================================================================ */
   function applyMethodContent(m) {
     document.title = `Numerical Analysis Workbench — ${m.docTitle}`;
