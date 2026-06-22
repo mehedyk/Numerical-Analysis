@@ -118,27 +118,41 @@
             </details>
           </div>
 
+          <!-- ── BRACKET [a, b] ──────────────────────────────────── -->
           <fieldset>
             <legend>Bracket [a, b]</legend>
             <div class="stop-options" id="bracket-mode-options">
+
+              <!-- Option 1: auto-detect -->
               <div class="stop-option active-mode" data-mode="bracket-auto">
                 <input type="radio" name="bracketMode" id="bracket-mode-auto" value="auto" checked />
                 <label class="opt-label" for="bracket-mode-auto">Find a and b automatically</label>
                 <span class="field-hint" style="margin:0;">scans f(x) for a sign change near the curve</span>
-                <label for="bracket-fine-toggle" style="display:flex; align-items:center; gap:8px; width:100%; margin:6px 0 0 26px; font-size:.82rem; font-weight:500; color:var(--ink-dim); cursor:pointer;">
-                  <input type="checkbox" id="bracket-fine-toggle" style="width:15px; height:15px; flex:none; accent-color:var(--copper);" />
-                  Prefer a tighter decimal bracket over whole numbers
-                </label>
+
+                <!-- Sub-toggle row: fine decimal + prefer negative -->
+                <div class="bracket-sub-toggles">
+                  <label for="bracket-fine-toggle" class="bracket-sub-label">
+                    <input type="checkbox" id="bracket-fine-toggle" class="bracket-sub-check" />
+                    Prefer a tighter decimal bracket over whole numbers
+                  </label>
+                  <label for="bracket-neg-toggle" class="bracket-sub-label">
+                    <input type="checkbox" id="bracket-neg-toggle" class="bracket-sub-check" />
+                    Prefer negative x range <span class="bracket-sub-hint">(scan negative side first)</span>
+                  </label>
+                </div>
               </div>
+
+              <!-- Option 2: manual -->
               <div class="stop-option" data-mode="bracket-manual">
                 <input type="radio" name="bracketMode" id="bracket-mode-manual" value="manual" />
                 <label class="opt-label" for="bracket-mode-manual">I'll set a and b myself</label>
-                <span class="field-hint" style="margin:0;">type your own bounds below</span>
+                <span class="field-hint" style="margin:0;">type your own bounds below — negative values like −2 are allowed</span>
               </div>
+
             </div>
           </fieldset>
 
-          <!-- bounds: type="text" so users can type 'e', 'pi', etc. -->
+          <!-- bounds inputs -->
           <div class="field-row">
             <div class="field">
               <label for="a-input">a (lower bound)</label>
@@ -160,24 +174,39 @@
           </div>
           <p class="field-hint" id="bracket-found-hint" hidden style="margin:-8px 0 18px;"></p>
 
+          <!-- ── STOP CRITERIA ───────────────────────────────────── -->
           <fieldset>
             <legend>Stop after…</legend>
             <div class="stop-options" id="stop-options">
-              <div class="stop-option active-mode" data-mode="auto">
-                <input type="radio" name="stopMode" id="mode-auto" value="auto" checked />
-                <label class="opt-label" for="mode-auto">Run as far as it can go</label>
-                <span class="field-hint" style="margin:0;">stops once the interval can't narrow any further</span>
+
+              <!-- Default: c-repeat -->
+              <div class="stop-option active-mode" data-mode="c-repeat">
+                <input type="radio" name="stopMode" id="mode-crepeat" value="c-repeat" checked />
+                <label class="opt-label" for="mode-crepeat">When c stops changing <span class="stop-badge stop-badge--default">default</span></label>
+                <span class="field-hint stop-option-hint">stops as soon as two consecutive midpoints are identical — the most natural convergence signal</span>
               </div>
+
+              <!-- Fixed iteration count -->
               <div class="stop-option" data-mode="iterations">
                 <input type="radio" name="stopMode" id="mode-iter" value="iterations" />
                 <label class="opt-label" for="mode-iter">A fixed number of steps</label>
                 <input type="number" class="sub-input" id="iter-count" min="1" max="500" placeholder="e.g. 6" disabled />
               </div>
+
+              <!-- Tolerance -->
               <div class="stop-option" data-mode="tolerance">
                 <input type="radio" name="stopMode" id="mode-tol" value="tolerance" />
                 <label class="opt-label" for="mode-tol">An error tolerance</label>
                 <input type="number" class="sub-input" id="tol-value" step="any" min="0" placeholder="e.g. 0.001" disabled />
               </div>
+
+              <!-- Legacy: machine precision -->
+              <div class="stop-option" data-mode="auto">
+                <input type="radio" name="stopMode" id="mode-auto" value="auto" />
+                <label class="opt-label" for="mode-auto">Run to full machine precision <span class="stop-badge">legacy</span></label>
+                <span class="field-hint stop-option-hint">original behaviour — narrows until the bracket width is below 4 × machine epsilon (may take 50 + steps)</span>
+              </div>
+
             </div>
           </fieldset>
 
