@@ -134,9 +134,71 @@
   .stop-option{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 12px; border:1px solid var(--line-soft); border-radius: var(--radius); }
   .stop-option.active-mode{ border-color: var(--copper); background: rgba(201,120,75,.08); }
   .stop-option input[type=radio]{ accent-color: var(--copper); width:16px; height:16px; flex:none; }
-  .stop-option label.opt-label{ font-weight:600; font-size:.88rem; margin:0; flex:none; }
+  .stop-option label.opt-label{ font-weight:600; font-size:.88rem; margin:0; flex:none; display:flex; align-items:center; gap:8px; }
   .stop-option .sub-input{ width:110px; margin-left:auto; }
   .stop-option .sub-input:disabled{ opacity:.4; }
+
+  /* Hint line that sits on its own row below the label */
+  .stop-option-hint{
+    width: 100%;
+    margin: 0 0 0 26px;
+    font-size: .78rem;
+    color: var(--ink-faint);
+    order: 10;          /* always after radio + label */
+  }
+
+  /* ── Stop-criterion badge (default / legacy) ── */
+  .stop-badge{
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: .6rem;
+    font-weight: 500;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: 1px 7px;
+    border-radius: 10px;
+    border: 1px solid var(--line-soft);
+    color: var(--ink-faint);
+    vertical-align: middle;
+    line-height: 1.6;
+  }
+  .stop-badge--default{
+    border-color: rgba(201,120,75,.5);
+    color: var(--copper-hi);
+    background: rgba(201,120,75,.1);
+  }
+
+  /* ── Bracket sub-toggles (fine decimal + prefer negative) ── */
+  .bracket-sub-toggles{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    margin: 6px 0 0 26px;  /* indent to align with radio label */
+  }
+  .bracket-sub-label{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .82rem;
+    font-weight: 500;
+    color: var(--ink-dim);
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .bracket-sub-check{
+    width: 15px;
+    height: 15px;
+    flex: none;
+    accent-color: var(--copper);
+    cursor: pointer;
+  }
+  .bracket-sub-hint{
+    font-size: .75rem;
+    color: var(--ink-faint);
+    font-weight: 400;
+  }
+
   .btn-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top: 6px; }
   .btn{ font-family: var(--font-display); font-weight:600; font-size:.92rem; letter-spacing:.02em; padding: 11px 22px; border-radius: var(--radius); border:1px solid var(--line); background: var(--panel-2); color: var(--ink); cursor:pointer; transition: transform .12s var(--ease), background .15s; }
   .btn:hover{ background: #234d7c; }
@@ -255,6 +317,10 @@
 
     /* Result chip row — wrap gracefully */
     .result-row{ flex-direction:column; align-items:flex-start; gap:8px; }
+
+    /* Bracket sub-toggles — reduce indent on mobile */
+    .bracket-sub-toggles{ margin-left: 0; }
+    .stop-option-hint{ margin-left: 0; }
   }
 
   /* ---- small phones (≤ 480 px) ---- */
