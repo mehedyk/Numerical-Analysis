@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=IBM+Plex+Mono&weight=700&size=26&duration=3500&pause=1200&color=C9784B&center=true&vCenter=true&multiline=false&width=720&height=55&lines=Numerical+Analysis+Workbench;Bisection+Method+%E2%80%94+Root+Finding;Step-by-Step+%C2%B7+Animated+%C2%B7+Exportable" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=IBM+Plex+Mono&weight=700&size=26&duration=3500&pause=1200&color=C9784B&center=true&vCenter=true&multiline=false&width=720&height=55&lines=Numerical+Analysis+Workbench;Bisection+%26+False+Position+Methods;Step-by-Step+%C2%B7+Animated+%C2%B7+Exportable" alt="Typing SVG" />
 
 <br/>
 
@@ -18,8 +18,9 @@
 
 <br/>
 
-> **A beautiful, interactive, zero-dependency workbench for solving equations using the Bisection Method.**  
-> Designed for Numerical Analysis students — type any equation, watch the algorithm converge in real time, and export a print-ready report in one tap.
+> **A beautiful, interactive, zero-dependency workbench for solving equations using Bracketing Methods.**  
+> Designed for Numerical Analysis students — type any equation, watch the algorithm converge in real time, and export a print-ready report in one tap.  
+> Supports **Bisection** and **False Position** methods, with Newton–Raphson and more on the way.
 
 <br/>
 
@@ -72,12 +73,13 @@
 
 | 🔢 | Feature | Description |
 |:---:|:---|:---|
-| 🎯 | **Smart Auto-Bracket Detection** | Automatically scans **±1000** to find a valid `[a, b]` bracket where a sign change exists — works for positive and negative roots |
-| ✍️ | **Natural Equation Input** | Type equations the way you write them: `xtan(x)-1`, `logx-cosx`, `3x^3-7x+5` — the smart preprocessor handles implicit multiplication and bare-function notation |
-| 🎞️ | **Animated Bisection Graph** | Watch the bracket narrow in real time with a built-in step player — go forward, back, or let it play automatically |
+| 🎯 | **Smart Auto-Bracket Detection** | Automatically scans **0 → +1000** first for a positive bracket, then falls back to **−1000 → 0** — so functions like `1-x·cos(x)` land on `[4, 5]` not `[-3, -2]`. A **"prefer negative"** toggle reverses the priority when you need it. |
+| ✍️ | **Natural Equation Input** | Type equations the way you write them: `xtan(x)-1`, `lnx-cosx`, `3x^3-7x+5` — the smart preprocessor handles implicit multiplication and bare-function notation |
+| 🔀 | **Two Bracketing Methods** | Switch between **Bisection** (always halves) and **False Position** (secant-line intercept) from the sheet index — same inputs, same table, different formula for c |
+| 🎞️ | **Animated Graph** | Watch the bracket narrow in real time with a built-in step player — go forward, back, or let it play automatically |
 | 📊 | **Full Iteration Table** | Every column: `n`, `a`, `b`, `f(a)`, `f(b)`, `c`, `f(c)`, Absolute Error, Relative Error |
 | ✅ | **IVT Verification** | Automatically verifies the Intermediate Value Theorem condition `f(a)·f(b) < 0` before solving |
-| 🛑 | **Flexible Stop Criteria** | Auto (IVT convergence), fixed iteration count, or custom tolerance — your choice |
+| 🛑 | **Flexible Stop Criteria** | **Default:** stops as soon as two consecutive c values look identical at the chosen precision — fast and intuitive. Also supports fixed iteration count, custom tolerance ε, and a legacy full-precision mode |
 | 🌍 | **True Root Mode** | Provide the known true root to get exact absolute and relative errors per iteration |
 | 📥 | **One-Tap Export** | Download a full landscape PNG image or multi-page PDF — works perfectly on mobile too |
 | 📱 | **Mobile-First Design** | 44px touch targets, stacked layouts, portrait-safe export — built for phones first |
@@ -106,7 +108,7 @@ Repeat:
   2. if f(c) = 0 → root found!
   3. if f(a)·f(c) < 0 → b ← c   ← root in left half
   4. else            → a ← c    ← root in right half
-  5. until |b - a| < ε  (or max iterations reached)
+  5. until c stops changing  (or max iterations reached)
 ```
 
 ### Convergence
@@ -129,9 +131,11 @@ $$n \geq \frac{\log_{10}(b-a) - \log_{10}(\varepsilon)}{\log_{10}(2)} \approx 3.
 | 4 | 0.6250 | 0.7500 | **0.6875** | +0.0838 | [0.6875, 0.75] |
 | 5 | 0.6875 | 0.7500 | **0.7188** | +0.0327 | [0.7188, 0.75] |
 | … | … | … | … | … | … |
-| 20 | 0.7391 | 0.7391 | **0.7391** | ≈ 0 | ✅ Converged |
+| 14 | 0.7391 | 0.7391 | **0.7391** | ≈ 0 | ✅ c repeated — converged |
 
 Root: $x \approx 0.7390851332$
+
+> At 4 decimal places the solver stops around step 14 once c stabilises to `0.7391`. Switch to the *Full machine precision* stop mode if you need all 52 steps.
 
 ---
 
@@ -165,7 +169,7 @@ $$f(x) = x^3 - 4x - 9 = 0$$
 $$f(x) = 3x^3 - 7x + 5 = 0$$
 **Bracket:** $[-2,\ -1]$ &nbsp;·&nbsp; **Root:** $x \approx -1.8340$
 
-> Requires a **negative bracket** — the app now supports `a` and `b` with negative values.
+> Requires a **negative bracket** — enter manually as `a = -2`, `b = -1`, or enable **"Prefer negative x range"** in auto-detect mode.
 
 ```
 f(−2) = −5  < 0
@@ -208,11 +212,11 @@ $$f(x) = x\tan(x) - 1 = 0$$
 
 ---
 
-### 9 · Log vs Cosine
-$$f(x) = \log(x) - \cos(x) = 0$$
-**Bracket:** $[1,\ 2]$ &nbsp;·&nbsp; **Root:** $x \approx 1.3026$
+### 9 · Natural Log vs Cosine
+$$f(x) = \ln(x) - \cos(x) = 0$$
+**Bracket:** $[1,\ 2]$ &nbsp;·&nbsp; **Root:** $x \approx 1.3029$
 
-> Type as `logx-cosx` — the app expands bare-function notation automatically.
+> Type as `ln(x)-cos(x)` or shorthand `lnx-cosx`. Note: in this app `ln(x)` is always the **natural log** and `log(x)` is always **base-10**.
 
 ---
 
@@ -238,15 +242,16 @@ You can type equations naturally — the input parser handles many common shorth
 | $3x^2$ | `3x^2` or `3*x^2` | Implicit coefficient multiply |
 | $\sqrt{x}$ | `sqrt(x)` | Square root |
 | $e^x$ | `e^x` or `exp(x)` | Euler's number |
-| $\ln(x)$ | `log(x)` or `ln(x)` | Natural log |
-| $\log_{10}(x)$ | `log10(x)` | Base-10 log |
+| $\ln(x)$ | `ln(x)` or `lnx` | Natural log — **use `ln`, not `log`** |
+| $\log_{10}(x)$ | `log(x)` or `log10(x)` or `logx` | Base-10 log |
 | $\sin(x)$ | `sin(x)` | Trig functions |
 | $x\tan(x)$ | `x*tan(x)` or `xtan(x)` | ⭐ Implicit multiply before function |
-| $\log(x)$ | `log(x)` or `logx` | ⭐ Bare-variable function shorthand |
-| $\cos(x)$ | `cos(x)` or `cosx` | ⭐ Same for all trig / log functions |
+| $\cos(x)$ | `cos(x)` or `cosx` | ⭐ Bare-variable function shorthand |
 | $\pi$ | `pi` | Pi constant |
 | $e$ | `e` | Euler's number as constant |
 | $|x|$ | `abs(x)` | Absolute value |
+
+> ⚠️ **`ln` vs `log`** — this parser deliberately separates them: `ln(x)` is always the *natural* log, `log(x)` is always *base-10* (same as `log10(x)`). This matches how most Numerical Analysis textbooks write it.
 
 ### ⭐ Smart Preprocessor — Examples
 
@@ -257,7 +262,8 @@ Input            →  Parsed as
 ─────────────────────────────────
 xtan(x)-1        →  x*tan(x)-1
 2sin(x)+cos(x)   →  2*sin(x)+cos(x)
-logx-cosx        →  log(x)-cos(x)
+lnx-cosx         →  ln(x)-cos(x)   (natural log)
+logx-cosx        →  log10(x)-cos(x) (base-10 log)
 sinx^2           →  sin(x)^2
 log10x           →  log10(x)
 3x^3-7x+5        →  3*x^3-7*x+5   (mathjs implicit multiply)
@@ -287,13 +293,21 @@ Step 1 ── Enter f(x)
           The validation dot turns green when the syntax is valid ●
 
 Step 2 ── Choose bracket mode
-          ○ Auto-detect       → the app scans ±1000 for a sign change
+          ○ Auto-detect       → scans positive x first (0 → +1000),
+                                falls back to negative if nothing found.
+                                Two optional sub-toggles:
+                                  ☐ Prefer tighter decimal bracket
+                                  ☐ Prefer negative x range (scan − side first)
           ○ Set a and b myself → type your own bounds (decimals, pi, -2, etc.)
 
 Step 3 ── Set stop criterion (optional)
-          ○ Auto              → stops when bracket width < 1×10⁻¹⁰
-          ○ Iterations        → exactly N steps
-          ○ Tolerance ε       → stops when |b-a| < ε
+          ● When c stops changing  → DEFAULT — stops as soon as two consecutive
+                                     midpoints display the same value at the
+                                     chosen precision (typically ~13–20 steps)
+          ○ Iterations             → exactly N steps
+          ○ Tolerance ε            → stops when AE ≤ ε
+          ○ Full machine precision → legacy mode, runs until bracket width
+                                     < 4 × machine epsilon (~50 steps)
 
 Step 4 ── Click SOLVE
           The IVT check, full iteration table, and graph all appear instantly.
@@ -382,9 +396,9 @@ This is a client-side math tool. No data is ever sent to any server. The followi
 
 | Library | Version | Purpose |
 |:---|:---:|:---|
-| [Math.js](https://mathjs.org/) | 13.x | Expression parsing & sandboxed evaluation |
+| [Math.js](https://mathjs.org/) | 14.x | Expression parsing & sandboxed evaluation |
 | [html2canvas](https://html2canvas.hertzen.com/) | 1.4.1 | DOM → Canvas for image export |
-| [jsPDF](https://github.com/parallax/jsPDF) | 2.5.1 | Canvas → PDF export |
+| [jsPDF](https://github.com/parallax/jsPDF) | 3.0.3 | Canvas → PDF export |
 | [IBM Plex Sans / Mono](https://fonts.google.com/specimen/IBM+Plex+Mono) | — | Typography (Google Fonts) |
 
 **Zero build tooling.** No Webpack, Vite, Rollup, npm, or Node.js required. All libraries are loaded from [cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/).
@@ -396,8 +410,12 @@ This is a client-side math tool. No data is ever sent to any server. The followi
 ```
 numerical-analysis-workbench/
 │
-├── index.html
-├── concern.html                  ← The entire application (HTML + CSS + JS, one file)
+├── index.html              ← page markup & layout
+├── styles.css              ← all styling (design tokens, components, responsive)
+├── core.js                 ← shared math utilities, export plumbing, page chrome
+├── engine-bracketing.js    ← Bisection & False Position engines, graph, table
+├── concern.html            ← Academic Integrity & Usage Policy page
+├── favicon.svg             ← browser tab icon
 │
 └── assets/
     ├── banner.svg
@@ -410,11 +428,21 @@ numerical-analysis-workbench/
         └── 06-export-pdf.png
 ```
 
-The entire app is **one self-contained HTML file** (`index.html`, ~80 KB). Everything — markup, styles, and logic — lives in that single file. Drop it anywhere and it runs.
+The app is **zero-dependency static files** — no build step, no npm, no server. Drop the folder anywhere and open `index.html`.
 
 ---
 
 ## 🙋 FAQ
+
+<details>
+<summary><b>Why did the solver stop after only ~13 steps?</b></summary>
+<br/>
+That's the new default behaviour — <b>"When c stops changing"</b>. The solver compares consecutive midpoints at your chosen decimal precision (default: 4 places). Once two consecutive steps show the exact same displayed value, the root is resolved to that precision and there's nothing left to narrow.
+
+This is mathematically correct: if `c` looks the same in two rows, you have your answer to the digits you can see.
+
+If you need more steps — for a class assignment that asks for exactly N iterations, or to see the full convergence trail — switch the stop criterion to **"A fixed number of steps"** or **"Full machine precision"** before clicking Solve.
+</details>
 
 <details>
 <summary><b>Why does my equation show a red dot?</b></summary>
@@ -425,18 +453,25 @@ The validation dot turns red when Math.js cannot parse the expression. Common fi
 - Use `^` for powers: `x^3` not `x³`
 - Functions need parentheses: `sin(x)` not `sin x` — or use the shorthand `sinx`
 - Division: `x/2` not `x÷2`
+- Natural log: use `ln(x)` — `log(x)` is base-10 in this app
 </details>
 
 <details>
 <summary><b>Why does auto-detect sometimes not find a bracket?</b></summary>
 <br/>
-The scanner checks whole-number steps from −1000 to +1000, then finer intervals. It will fail if:
+The scanner checks whole-number steps from 0 to +1000 (positive pass), then −1000 to 0 (negative fallback). It will fail if:
 
 1. The function has **no real roots** in that range
 2. The root is at a **discontinuity** (e.g. `tan(x)` has sign changes at asymptotes that look like roots)
 3. The function requires a **very small bracket** that the whole-number scan skips over
 
 Switch to **"I'll set a and b myself"** and enter bounds you know contain a root.
+</details>
+
+<details>
+<summary><b>Auto-detect keeps returning a positive bracket — I need a negative one</b></summary>
+<br/>
+By design, the scanner tries positive x values first. To force it to prefer the negative side, tick <b>"Prefer negative x range"</b> under the auto-detect option before clicking Solve. The scanner will then complete the negative sweep first and return the smallest-magnitude negative bracket it finds.
 </details>
 
 <details>
@@ -462,7 +497,11 @@ The app UI adapts for mobile screens. However, the <b>exported file is always id
 <details>
 <summary><b>Can I host this on my own domain?</b></summary>
 <br/>
-Absolutely. Just upload `index.html` to any static host:
+Absolutely. Upload all the root-level files together to any static host:
+
+```
+index.html  styles.css  core.js  engine-bracketing.js  concern.html  favicon.svg
+```
 
 - GitHub Pages (free)
 - Netlify (free, drag-and-drop)
@@ -482,6 +521,7 @@ Absolutely. Just upload `index.html` to any static host:
 | **Steps for 10 decimal places** | $\approx 34$ iterations |
 | **Failure conditions** | f not continuous on [a,b], or f(a)·f(b) ≥ 0 |
 | **Compared to Newton-Raphson** | Slower but always converges; no derivative needed |
+| **Compared to False Position** | More predictable step count; False Position is often faster but can stagnate on one-sided curves |
 
 ---
 
@@ -496,7 +536,10 @@ git clone https://github.com/mehedyk/Numerical-Analysis.git
 # 2. Create a feature branch
 git checkout -b feature/my-new-method
 
-# 3. Make your changes to index.html
+# 3. Make your changes
+#    - New methods go in engine-*.js (see engine-bracketing.js as a template)
+#    - Shared utilities go in core.js
+#    - UI/layout changes go in index.html + styles.css
 
 # 4. Test by opening index.html in a browser (no build needed)
 
@@ -505,7 +548,11 @@ git checkout -b feature/my-new-method
 
 ### Ideas for Contributions
 
-- [ ] Add other root-finding methods (False Position, Newton-Raphson, Secant)
+- [x] False Position method ✓
+- [ ] Newton–Raphson method
+- [ ] Secant method
+- [ ] Fixed-point iteration
+- [ ] Lagrange interpolation
 - [ ] Dark/light theme toggle
 - [ ] Share-by-URL (encode equation in URL hash)
 - [ ] Copy table as LaTeX / CSV
