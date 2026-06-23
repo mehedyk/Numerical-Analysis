@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Dark panel background -->
+  <rect width="32" height="32" rx="4" fill="#0F2240"/>
+  <!-- Border -->
+  <rect x="1" y="1" width="30" height="30" rx="3" fill="none" stroke="#3D6694" stroke-width="1.5"/>
+  <!-- Dashed x-axis baseline -->
+  <line x1="5" y1="22" x2="27" y2="22" stroke="#AEC0D6" stroke-width="1.2" stroke-dasharray="2 2"/>
+  <!-- Left bracket vertical -->
+  <line x1="6" y1="22" x2="6" y2="9" stroke="#AEC0D6" stroke-width="1.2"/>
+  <!-- Right bracket vertical -->
+  <line x1="26" y1="22" x2="26" y2="13" stroke="#AEC0D6" stroke-width="1.2"/>
+  <!-- f(x) curve -->
+  <path d="M6 22 C 10 6, 20 6, 26 13" stroke="#7FA68C" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Root dot (copper) -->
+  <circle cx="16" cy="22" r="3" fill="#C9784B"/>
+</svg>

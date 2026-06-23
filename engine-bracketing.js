@@ -214,12 +214,13 @@
         step.converged = true; step.reason = 'f(c) = 0 exactly'; break;
       }
 
-      /* 2. c-repeat: c hasn't changed from the previous iteration.
-            This is the new default (mode === 'c-repeat').
-            The bracket has collapsed to floating-point resolution —
-            computing a new midpoint gives the same number. */
-      if (mode === 'c-repeat' && n > 1 && c === prevC) {
-        step.converged = true; step.reason = 'c repeated — bracket fully resolved'; break;
+      /* 2. c-repeat: the displayed value of c hasn't changed from the
+            previous iteration. Compares fmt(c) vs fmt(prevC) so it
+            fires as soon as two consecutive midpoints look identical
+            at the chosen decimal precision — exactly what appears in
+            the table. This is the new default (mode === 'c-repeat'). */
+      if (mode === 'c-repeat' && n > 1 && fmt(c) === fmt(prevC)) {
+        step.converged = true; step.reason = 'c repeated — root resolved to displayed precision'; break;
       }
 
       /* 3. Legacy machine-precision check (mode === 'auto') */
