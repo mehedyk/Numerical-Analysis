@@ -101,68 +101,76 @@
 
   /* ================================================================
      AUTO BRACKET FINDERS
-     Three strategies:
-     - Whole-number (default): scans consecutive integers outward from
-       the origin for a sign change. preferNegative flag reverses the
-       check order so negative intervals are tested before positive ones
-       at each radius step.
-     - Fine: scans progressively wider windows with finer steps,
-       landing on a tighter (decimal) bracket close to the root.
+     Two strategies, each running two separate directional passes:
+     - Whole-number: scans integer intervals [0,1],[1,2],… (positive
+       pass) then [-1,0],[-2,-1],… (negative pass). By default the
+       positive pass is completed entirely before the negative pass is
+       tried, so a positive bracket at [4,5] always wins over a
+       negative bracket at [-3,-2]. preferNegative flips this order.
+     - Fine: same two-pass logic using decimal-resolution windows
+       ([0,10], [0,100], [0,1000] for positive; [-10,0] etc. for
+       negative). The winning pass is whichever runs first.
      ================================================================ */
   function findBracketAutoWhole(fn, preferNegative) {
     const N = 1000;
-    /* Scan OUTWARD from the origin at each radius i = 0, 1, 2, …
-       By default positive [i, i+1] is checked before negative [-(i+1), -i].
-       When preferNegative is true the order is flipped so the scanner
-       returns the smallest-magnitude *negative* bracket first. */
-    for (let i = 0; i < N; i++) {
-      const checkPos = () => {
+    /* Two SEPARATE sequential passes rather than an interleaved outward
+       scan.  The old interleaved approach checked positive [i,i+1] and
+       negative [-(i+1),-i] at the same radius i, so a negative bracket
+       at radius 2-3 would be returned before a positive bracket at
+       radius 4-5 — wrong for functions like 1-x*cos(x).
+       Now: complete the preferred-direction sweep entirely first;
+       only attempt the other direction as a fallback. */
+    const scanPos = () => {
+      for (let i = 0; i < N; i++) {
         const yL = fn(i), yR = fn(i + 1);
         if (isFinite(yL) && yL === 0) return [i, i + 1];
         if (isFinite(yL) && isFinite(yR) && yL * yR < 0) return [i, i + 1];
-        return null;
-      };
-      const checkNeg = () => {
+      }
+      return null;
+    };
+    const scanNeg = () => {
+      for (let i = 0; i < N; i++) {
         const yNL = fn(-(i + 1)), yNR = fn(-i);
         if (isFinite(yNR) && yNR === 0) return [-(i + 1), -i];
         if (isFinite(yNL) && isFinite(yNR) && yNL * yNR < 0) return [-(i + 1), -i];
-        return null;
-      };
-
-      const first  = preferNegative ? checkNeg : checkPos;
-      const second = preferNegative ? checkPos : checkNeg;
-      const r = first() || second();
-      if (r) return r;
-    }
-    return null;
+      }
+      return null;
+    };
+    return preferNegative ? (scanNeg() || scanPos()) : (scanPos() || scanNeg());
   }
 
   function findBracketAutoFine(fn, preferNegative) {
-    /* When preferNegative, try a negative-biased window first */
+    /* Same two-pass logic at decimal resolution.
+       windowsPos: scans right from 0 — never dips into negative x.
+       windowsNeg: scans left from 0 — never enters positive x.
+       Default: positive pass first, negative as fallback. */
+    const scan = windows => {
+      for (const { lo, hi, n } of windows) {
+        const step = (hi - lo) / n;
+        let prevX = lo, prevY = fn(lo);
+        for (let i = 1; i <= n; i++) {
+          const x = lo + i * step;
+          const y = fn(x);
+          if (isFinite(prevY) && prevY === 0) return [prevX, prevX + step];
+          if (isFinite(prevY) && isFinite(y) && prevY * y < 0) return [prevX, x];
+          prevX = x; prevY = y;
+        }
+      }
+      return null;
+    };
+    const windowsPos = [
+      { lo: 0,     hi: 10,   n: 400  },
+      { lo: 0,     hi: 100,  n: 600  },
+      { lo: 0,     hi: 1000, n: 800  },
+    ];
     const windowsNeg = [
       { lo: -10,   hi: 0,    n: 400  },
       { lo: -100,  hi: 0,    n: 600  },
       { lo: -1000, hi: 0,    n: 800  },
     ];
-    const windowsStd = [
-      { lo: -10,   hi: 10,   n: 800  },
-      { lo: -100,  hi: 100,  n: 1000 },
-      { lo: -1000, hi: 1000, n: 1200 },
-    ];
-    const windows = preferNegative ? [...windowsNeg, ...windowsStd] : windowsStd;
-
-    for (const { lo, hi, n } of windows) {
-      const step = (hi - lo) / n;
-      let prevX = lo, prevY = fn(lo);
-      for (let i = 1; i <= n; i++) {
-        const x = lo + i * step;
-        const y = fn(x);
-        if (isFinite(prevY) && prevY === 0) return [prevX, prevX + step];
-        if (isFinite(prevY) && isFinite(y) && prevY * y < 0) return [prevX, x];
-        prevX = x; prevY = y;
-      }
-    }
-    return null;
+    return preferNegative
+      ? (scan(windowsNeg) || scan(windowsPos))
+      : (scan(windowsPos) || scan(windowsNeg));
   }
 
   /* ================================================================
